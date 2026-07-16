@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Circom generated folders
+*_js/
+
+# Circom generated files
+*.r1cs
+*.sym
+*.wasm
+*.wtns
+
+# Trusted Setup files
+*.ptau
+*.zkey
+
+# Generated proofs and public signals
+*_proof.json
+*_public.json
+verification_key*.json
+
+# Generated proof directory
+proofs/
+
+# Generated input files
+input.json
+inputs/*.json
+
+# OCR trained data
+*.traineddata
+
+# Uploaded/test documents
+documents/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+proof_*.json
+public_*.json
