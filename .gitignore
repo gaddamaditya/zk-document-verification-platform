@@ -1,0 +1,35 @@
+# Dependencies
+**/node_modules/
+
+# React build
+**/dist/
+
+# Uploads
+**/uploads/
+
+# Temp verification
+**/temp-verification/
+
+# Generated proofs
+**/*_proof.json
+**/*_public.json
+**/verification_key*.json
+**/proofs/
+
+# Circom
+**/*.wtns
+**/*.r1cs
+**/*.sym
+**/*.zkey
+**/*.ptau
+
+# Documents
+**/documents/
+
+# Env
+**/.env
+**/.env.*
+
+# OS
+.DS_Store
+Thumbs.db
