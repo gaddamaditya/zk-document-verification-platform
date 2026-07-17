@@ -1,11 +1,10 @@
 const fs = require("fs");
 
 function generateGradeInput(attributes) {
-
+    let gradeVal = attributes.grade ? attributes.grade.trim().toUpperCase().charCodeAt(0) : 0;
     const input = {
-
-        grade: attributes.grade
-
+        grade: gradeVal,
+        requiredGrade: gradeVal
     };
 
     fs.writeFileSync(

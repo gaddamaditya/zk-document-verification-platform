@@ -1,11 +1,10 @@
 const fs = require("fs");
 
 function generateGrandTotalInput(attributes) {
-
+    const val = parseInt(attributes.grandTotal) || 0;
     const input = {
-
-        grandTotal: parseInt(attributes.grandTotal)
-
+        grandTotal: val,
+        requiredGrandTotal: val
     };
 
     fs.writeFileSync(
