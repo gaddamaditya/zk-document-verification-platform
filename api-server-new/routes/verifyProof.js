@@ -55,8 +55,7 @@ const upload = multer({
 
 const uploadFields = upload.fields([
     { name: "proof", maxCount: 1 },
-    { name: "public", maxCount: 1 },
-    { name: "verificationKey", maxCount: 1 }
+    { name: "public", maxCount: 1 }
 ]);
 
 // Middleware to assign a unique verify ID
@@ -108,10 +107,10 @@ function runVerification(runDir) {
 router.post("/", attachVerifyId, uploadFields, async (req, res) => {
     let runDir = null;
     try {
-        if (!req.files || !req.files.proof || !req.files.public || !req.files.verificationKey) {
+        if (!req.files || !req.files.proof || !req.files.public) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required files. Please upload proof, public, and verificationKey."
+                message: "Missing required files. Please upload proof and public."
             });
         }
 
@@ -122,12 +121,71 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
         const publicPath = path.join(runDir, "public.json");
         const vkeyPath = path.join(runDir, "verification_key.json");
 
-        if (!fs.existsSync(proofPath) || !fs.existsSync(publicPath) || !fs.existsSync(vkeyPath)) {
+        if (!fs.existsSync(proofPath) || !fs.existsSync(publicPath)) {
             return res.status(400).json({
                 success: false,
-                message: "Failed to upload all three verification files correctly."
+                message: "Failed to upload all required verification files correctly."
             });
         }
+
+        // Read claims metadata saved during proof generation
+        const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification");
+        const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
+        let claims = [];
+        try {
+            if (fs.existsSync(metaPath)) {
+                const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+                claims = meta.claims || [];
+            }
+        } catch (metaErr) {
+            console.error(`[Verify] Could not read claims metadata: ${metaErr.message}`);
+        }
+
+        // Determine verification key filename using explicit mappings
+        let keyFilename = null;
+        if (claims.length === 1) {
+            const claim = claims[0];
+            if (claim === "NAME") {
+                keyFilename = "verification_key_NameVerifier.json";
+            } else if (claim === "AGE_18_PLUS") {
+                keyFilename = "verification_key_AgeVerifier.json";
+            } else if (claim === "GENDER") {
+                keyFilename = "verification_key_GenderVerifier.json";
+            } else if (claim === "RESULT") {
+                keyFilename = "verification_key_ResultVerifier.json";
+            } else if (claim === "STUDENT_NAME") {
+                keyFilename = "verification_key_StudentNameVerifier.json";
+            } else if (claim === "GRADE") {
+                keyFilename = "verification_key_GradeVerifier.json";
+            } else if (claim === "GRAND_TOTAL") {
+                keyFilename = "verification_key_GrandTotalVerifier.json";
+            }
+        } else if (
+            claims.length === 3 &&
+            claims.includes("NAME") &&
+            claims.includes("AGE_18_PLUS") &&
+            claims.includes("GENDER")
+        ) {
+            keyFilename = "verification_key_MultiAttributeVerifier.json";
+        }
+
+        if (!keyFilename) {
+            return res.status(400).json({
+                success: false,
+                message: "Unsupported claim combination"
+            });
+        }
+
+        const sourceVkeyPath = path.join(ZKP_ENGINE_DIR, keyFilename);
+        if (!fs.existsSync(sourceVkeyPath)) {
+            return res.status(400).json({
+                success: false,
+                message: `Server-side verification key not found: ${keyFilename}`
+            });
+        }
+
+        // Copy source verification key to vkeyPath in runDir
+        fs.copyFileSync(sourceVkeyPath, vkeyPath);
 
         console.log(`[Verify] Starting verification run: ${verifyId}`);
         const result = await runVerification(runDir);
@@ -139,18 +197,6 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
         }
 
         if (result.stdout.includes("OK!")) {
-            // Read claims metadata saved during proof generation
-            let claims = [];
-            const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
-            try {
-                if (fs.existsSync(metaPath)) {
-                    const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-                    claims = meta.claims || [];
-                }
-            } catch (metaErr) {
-                console.error(`[Verify] Could not read claims metadata: ${metaErr.message}`);
-            }
-
             return res.status(200).json({
                 success: true,
                 verified: true,
