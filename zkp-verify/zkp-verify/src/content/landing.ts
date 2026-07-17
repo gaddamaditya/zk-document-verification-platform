@@ -1,15 +1,14 @@
-import { BadgeCheck, FileCheck2, Layers3, Lock, ShieldCheck, Workflow } from 'lucide-react';
+import { BadgeCheck, FileCheck2, Layers3, Lock, ShieldCheck, Workflow, Mail } from 'lucide-react';
 
 export const landingContent = {
   hero: {
     eyebrow: 'Privacy-Preserving Document Verification',
-    title: 'Privacy-Preserving Document Verification using Zero-Knowledge Proofs',
+    title: 'Verify Documents Without Revealing Sensitive Information',
     subtitle:
-      'Prove facts about your document without revealing the document itself. Upload a document, select what you want to prove, generate a cryptographic proof, and share it with a verifier — all while keeping your original document private.',
+      'Prove facts such as age, identity, academic qualifications, and document authenticity without sharing the original document.',
     actions: [
       { label: 'Generate Proof', href: '/generate-proof', variant: 'default' as const },
       { label: 'Verify Proof', href: '/verify-proof', variant: 'outline' as const },
-      { label: 'How It Works', href: '/how-zkp-works', variant: 'secondary' as const },
     ],
     infoCards: [
       {
@@ -24,10 +23,10 @@ export const landingContent = {
       },
     ],
     stats: [
-      { label: 'Document exposure', value: '0%' },
-      { label: 'Verifier learns', value: 'Only truth' },
-      { label: 'Designed for', value: 'Research demos' },
-      { label: 'Flow', value: 'Local first' },
+      { value: 'Private', label: 'Verification' },
+      { value: 'No Document', label: 'Sharing' },
+      { value: 'Multiple', label: 'Claims' },
+      { value: 'Secure', label: 'Verification' },
     ],
   },
   explanation: {
@@ -62,7 +61,7 @@ export const landingContent = {
     'Upload Document',
     'Select Claims',
     'Generate Proof',
-    'Verify',
+    'Verify Proof',
   ],
   comparisonVisual: {
     traditional: {
@@ -175,11 +174,11 @@ export const landingContent = {
       featured: false,
     },
     {
-      title: 'How It Works',
-      description: 'Learn about the technical pipeline: OCR, circuits, witness generation, and Groth16 proof verification.',
-      href: '/how-zkp-works',
-      cta: 'Learn More',
-      icon: Workflow,
+      title: 'Contact',
+      description: 'For project discussions, feedback, collaboration opportunities, or technical questions.',
+      href: '/contact',
+      cta: 'Contact',
+      icon: Mail,
       featured: false,
     },
   ],

@@ -22,7 +22,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
             </div>
             <div>
               <p className="text-sm font-semibold tracking-[0.2em] text-cyan-100 uppercase">ZKP-DOCVerify</p>
-              <p className="text-xs text-slate-400">Research demonstration</p>
+              <p className="text-xs text-slate-400">Privacy Verification Platform</p>
             </div>
           </Link>
 
@@ -98,7 +98,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
             <p className="max-w-xl text-sm leading-7 text-slate-400">
-              Privacy-Preserving Document Verification using Zero-Knowledge Proofs. This research project demonstrates selective disclosure of document attributes through OCR, Circom circuits, Groth16 proof generation, and cryptographic verification.
+              Privacy-Preserving Document Verification using Zero-Knowledge Proofs. This project enables users to prove specific document attributes without revealing the complete document.
             </p>
             <div className="mt-6 grid gap-2 text-xs text-slate-400">
               <p>
@@ -128,7 +128,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div>
-            <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-100">Research Resources</h4>
+            <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-100">Resources & Contact</h4>
             <div className="space-y-3 text-sm text-slate-400">
               <p>
                 <span className="text-slate-200">Technology Stack:</span> React, Vite, Tailwind, Framer Motion, Groth16
@@ -136,7 +136,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
               <a className="flex items-center gap-2 transition-colors hover:text-white" href="mailto:gaddamaditya8@gmail.com">
                 <Mail className="h-4 w-4 text-cyan-300" /> gaddamaditya8@gmail.com
               </a>
-              <a className="flex items-center gap-2 transition-colors hover:text-white" href="https://github.com/gaddamaditya" target="_blank" rel="noreferrer">
+              <a className="flex items-center gap-2 transition-colors hover:text-white" href="https://github.com/gaddamaditya/zk-document-verification-platform" target="_blank" rel="noreferrer">
                 <ExternalLink className="h-4 w-4 text-purple-300" /> GitHub Repository
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
@@ -144,7 +144,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="border-t border-white/5 px-6 py-5 text-center text-xs text-slate-500">
-          Copyright {new Date().getFullYear()} ZKP-DOCVerify Research Platform. Academic demonstration for research and education.
+          Copyright {new Date().getFullYear()} ZKP-DOCVerify. Privacy-Preserving Document Verification Platform.
         </div>
       </footer>
     </div>

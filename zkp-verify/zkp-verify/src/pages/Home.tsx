@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import {
   ArrowDown,
   ArrowRight,
-  BadgeCheck,
   CheckCircle2,
   CreditCard,
   BookOpenText,
@@ -12,6 +11,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   UserCheck,
+  X,
 } from 'lucide-react';
 
 import {
@@ -21,6 +21,20 @@ import {
   SectionHeading,
 } from '@/components/landing/LandingSections';
 import { landingContent } from '@/content/landing';
+
+const traditionalItems = [
+  'Full document must be shared',
+  'Personal information is exposed',
+  'Sensitive details remain visible',
+  'Higher privacy risk',
+];
+
+const privacyItems = [
+  'Only required claims are shared',
+  'Sensitive information remains hidden',
+  'Original document is not revealed',
+  'Secure cryptographic verification',
+];
 
 export default function Home() {
   return (
@@ -37,8 +51,8 @@ export default function Home() {
       <section className="space-y-8">
         <SectionHeading
           eyebrow="How It Works"
-          title="Four simple steps from document to verified proof"
-          description="Upload a document, choose what to prove, generate a proof, and share it with a verifier. No personal data is ever revealed."
+          title="Verify Your Documents in Four Simple Steps"
+          description="Generate privacy-preserving proofs from your documents and share only the information required for verification."
           centered
         />
 
@@ -68,76 +82,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── ZKP explanation + benefits ──────────────────────────── */}
-      <section className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
-        <div>
-          <SectionHeading
-            eyebrow={landingContent.explanation.eyebrow}
-            title="What is Zero-Knowledge Proof and why does it matter?"
-            description={landingContent.explanation.description}
-          />
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {landingContent.benefits.slice(0, 3).map((benefit) => (
-              <GlassCard key={benefit.title} icon={<benefit.icon className="h-5 w-5" />} title={benefit.title} description={benefit.description} />
-            ))}
-          </div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl"
-        >
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
-              <BadgeCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-white">The core idea</h3>
-              <p className="text-sm text-slate-400">Prove facts without revealing the source.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 text-sm leading-7 text-slate-300">
-            <div className="rounded-xl border border-white/10 bg-slate-950/40 p-4">
-              <p className="font-medium text-white">What is ZKP?</p>
-              <p className="mt-1 text-slate-400">A cryptographic method to prove a claim is true without revealing the underlying data.</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-slate-950/40 p-4">
-              <p className="font-medium text-white">Why important?</p>
-              <p className="mt-1 text-slate-400">It prevents over-disclosure in document verification and reduces privacy risk exposure.</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-slate-950/40 p-4">
-              <p className="font-medium text-white">Benefits</p>
-              <p className="mt-1 text-slate-400">Selective disclosure, smaller trust surface, and mathematically verifiable claims.</p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ── Traditional vs ZKP comparison ────────────────────────── */}
+      {/* ── Traditional vs Privacy-Preserving Comparison ─────────── */}
       <section className="space-y-10">
         <SectionHeading
-          eyebrow="Verification Comparison"
-          title="Traditional verification exposes personal data. Zero-knowledge verification does not."
-          description="See exactly what the verifier receives in each model."
+          eyebrow="Why Privacy-Preserving Verification?"
+          title="Compare traditional document sharing with selective verification."
+          description="Understand the difference between exposing your original document and utilizing privacy-preserving claims."
           centered
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <GlassCard
-            icon={<ShieldAlert className="h-5 w-5" />}
-            title={landingContent.comparisonVisual.traditional.title}
-            description={landingContent.comparisonVisual.traditional.lead}
+            icon={<ShieldAlert className="h-5 w-5 animate-pulse text-red-400" />}
+            title="Traditional Verification"
+            description="Conventional document sharing requires giving away all details."
           >
             <div className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 p-4">
-              <p className="text-sm font-semibold text-red-200">Verifier receives</p>
-              <ul className="mt-2 grid gap-2 text-sm text-red-100">
-                {landingContent.comparisonVisual.traditional.reveals.map((item) => (
+              <ul className="grid gap-2 text-sm text-red-100">
+                {traditionalItems.map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <ArrowDown className="h-3.5 w-3.5 rotate-[-45deg]" />
+                    <X className="h-4 w-4 text-red-400 shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -146,27 +110,15 @@ export default function Home() {
           </GlassCard>
 
           <GlassCard
-            icon={<ShieldCheck className="h-5 w-5" />}
-            title={landingContent.comparisonVisual.zkp.title}
-            description={landingContent.comparisonVisual.zkp.lead}
+            icon={<ShieldCheck className="h-5 w-5 text-cyan-300" />}
+            title="Privacy-Preserving Verification"
+            description="Selective disclosure proves facts without exposing raw data."
           >
             <div className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <p className="text-sm font-semibold text-cyan-100">Verifier receives</p>
-              <ul className="mt-2 grid gap-2 text-sm text-cyan-50">
-                {landingContent.comparisonVisual.zkp.reveals.map((item) => (
+              <ul className="grid gap-2 text-sm text-cyan-100">
+                {privacyItems.map((item) => (
                   <li key={item} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-3 rounded-xl border border-purple-400/20 bg-purple-500/10 p-4">
-              <p className="text-sm font-semibold text-purple-100">Verifier never sees</p>
-              <ul className="mt-2 grid gap-2 text-sm text-purple-50">
-                {landingContent.comparisonVisual.zkp.hidden.map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <ArrowDown className="h-3.5 w-3.5 rotate-45" />
+                    <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}

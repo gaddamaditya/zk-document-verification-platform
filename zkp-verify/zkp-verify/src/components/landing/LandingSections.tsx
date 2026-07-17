@@ -121,9 +121,9 @@ export function LandingHero({
               );
             })
           ) : (
-            stats.map((stat) => (
+            stats.map((stat, index) => (
               <div
-                key={stat.label}
+                key={`${stat.label}-${index}`}
                 className="rounded-2xl border border-white/10 bg-white/5 p-5"
               >
                 <p className="text-3xl font-semibold text-white">{stat.value}</p>
@@ -132,7 +132,7 @@ export function LandingHero({
             ))
           )}
           <div className="sm:col-span-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm leading-7 text-cyan-50">
-            This interface is intentionally designed for academic demonstration: privacy first, backend second.
+            This platform is designed for privacy-preserving document verification: proving facts securely without sharing your original documents.
           </div>
         </motion.div>
       </div>
