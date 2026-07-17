@@ -22,13 +22,13 @@ type VerificationState = 'idle' | 'verifying' | 'valid' | 'invalid' | 'error';
 /** Map ZKP engine claim names to human-readable labels */
 const CLAIM_LABELS: Record<string, string> = {
   NAME: 'Name Verification',
-  AGE_18_PLUS: 'Age ≥ 18 Verification',
+  AGE_18_PLUS: 'Age Verification (18+)',
   GENDER: 'Gender Verification',
   DOB: 'Date of Birth Verification',
-  STUDENT_NAME: 'Degree Verification',
-  RESULT: 'Academic Result Verification',
-  GRADE: 'CGPA Verification',
-  GRAND_TOTAL: 'Certificate Authenticity',
+  STUDENT_NAME: 'Student Name Verification',
+  RESULT: 'Result Verification',
+  GRADE: 'Grade Verification',
+  GRAND_TOTAL: 'Grand Total Verification',
 };
 
 interface FileSlot {
@@ -50,12 +50,6 @@ const fileSlots: FileSlot[] = [
     fieldName: 'public',
     description: 'The public inputs used during proof generation.',
     icon: FileJson,
-  },
-  {
-    label: 'verification_key.json',
-    fieldName: 'vkey',
-    description: 'The verification key from the trusted setup.',
-    icon: ShieldCheck,
   },
 ];
 
@@ -173,12 +167,11 @@ export default function VerifyProof() {
   const [files, setFiles] = useState<Record<string, File | null>>({
     proof: null,
     public: null,
-    vkey: null,
   });
   const [verificationState, setVerificationState] = useState<VerificationState>('idle');
   const [verifiedClaims, setVerifiedClaims] = useState<string[]>([]);
 
-  const allFilesSelected = files.proof && files.public && files.vkey;
+  const allFilesSelected = files.proof && files.public;
 
   const setFile = (field: string, file: File) => {
     setFiles((prev) => ({ ...prev, [field]: file }));
@@ -193,20 +186,19 @@ export default function VerifyProof() {
   };
 
   const reset = () => {
-    setFiles({ proof: null, public: null, vkey: null });
+    setFiles({ proof: null, public: null });
     setVerificationState('idle');
     setVerifiedClaims([]);
   };
 
   const handleVerify = async () => {
-    if (!files.proof || !files.public || !files.vkey) return;
+    if (!files.proof || !files.public) return;
     setVerificationState('verifying');
 
     try {
       const formData = new FormData();
       formData.append('proof', files.proof);
       formData.append('public', files.public);
-      formData.append('verificationKey', files.vkey);
 
       const res = await fetch('http://localhost:3001/api/verify-proof', {
         method: 'POST',
@@ -267,7 +259,7 @@ export default function VerifyProof() {
       {/* ── Section 1: Upload Proof Files ──────────────────────────── */}
       <Panel
         title="Upload Proof Files"
-        description="Upload the three files provided by the prover."
+        description="Upload the proof and public files provided by the prover."
         icon={FileUp}
       >
         <div className="space-y-3">
@@ -284,7 +276,7 @@ export default function VerifyProof() {
 
         {!allFilesSelected && (
           <p className="mt-4 text-xs text-slate-500">
-            Upload all three files to enable verification.
+            Upload both files to enable verification.
           </p>
         )}
       </Panel>

@@ -637,7 +637,7 @@ export default function GenerateProof() {
         icon={Download}
       >
         <div className="space-y-3">
-          {['proof.json', 'public.json', 'verification_key.json'].map((file) => (
+          {['proof.json', 'public.json'].map((file) => (
             <div
               key={file}
               className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
@@ -655,8 +655,6 @@ export default function GenerateProof() {
                     window.open('http://localhost:3001/api/download/proof', '_blank');
                   } else if (file === 'public.json') {
                     window.open('http://localhost:3001/api/download/public', '_blank');
-                  } else if (file === 'verification_key.json') {
-                    window.open('http://localhost:3001/api/download/verification-key', '_blank');
                   }
                 }}
               >
