@@ -2,22 +2,22 @@
 node_modules/
 
 # Circom generated folders
-*_js/
+# *_js/
 
 # Circom generated files
 *.r1cs
 *.sym
-*.wasm
+# *.wasm
 *.wtns
 
 # Trusted Setup files
 *.ptau
-*.zkey
+# *.zkey
 
 # Generated proofs and public signals
 *_proof.json
 *_public.json
-verification_key*.json
+# verification_key*.json
 
 # Generated proof directory
 proofs/

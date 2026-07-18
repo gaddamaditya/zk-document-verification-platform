@@ -13,14 +13,14 @@
 # Generated proofs
 **/*_proof.json
 **/*_public.json
-**/verification_key*.json
+# **/verification_key*.json
 **/proofs/
 
 # Circom
 **/*.wtns
 **/*.r1cs
 **/*.sym
-**/*.zkey
+# **/*.zkey
 **/*.ptau
 
 # Documents
