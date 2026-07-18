@@ -41,6 +41,30 @@ app.use("/api/ocr", ocrRouter);
 // ─── Error handling (must be after routes) ──────────────────────
 app.use(errorHandler);
 
+// ─── Startup Validation Diagnostics ──────────────────────────────
+const zkpEnginePath = path.resolve(__dirname, "..", "zk-document-verification");
+const zkpEngineExists = fs.existsSync(zkpEnginePath);
+const zkpNodeModulesPath = path.join(zkpEnginePath, "node_modules");
+const zkpNodeModulesExists = fs.existsSync(zkpNodeModulesPath);
+
+global.ZKP_ENGINE_AVAILABLE = zkpEngineExists && zkpNodeModulesExists;
+
+console.log("-------------------------------------------------");
+console.log("API Server Started");
+console.log("-------------------------------------------------");
+console.log(`ZKP Engine Path:\n${zkpEnginePath}\n`);
+console.log(`ZKP Engine Exists:\n${zkpEngineExists}\n`);
+console.log(`ZKP Engine node_modules Exists:\n${zkpNodeModulesExists}\n`);
+console.log(`Node Version:\n${process.version}\n`);
+console.log(`Current Working Directory:\n${process.cwd()}\n`);
+console.log(`ZKP Engine Available:\n${global.ZKP_ENGINE_AVAILABLE}`);
+console.log("-------------------------------------------------");
+
+if (!global.ZKP_ENGINE_AVAILABLE) {
+  console.warn("\n  ⚠️  WARNING: ZKP Engine is NOT fully available on this deployment.");
+  console.warn("  Please make sure 'zk-document-verification' and its 'node_modules' exist.\n");
+}
+
 // ─── Start server ───────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n  ✅ api-server-new running on http://localhost:${PORT}`);

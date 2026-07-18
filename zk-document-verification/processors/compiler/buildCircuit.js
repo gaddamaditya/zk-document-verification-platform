@@ -11,6 +11,16 @@ function buildCircuit(circuitName) {
     const zkeyFinal = `${circuitName}_final.zkey`;
     const verificationKey = `verification_key_${circuitName}.json`;
 
+    if (
+        fs.existsSync(r1csFile) &&
+        fs.existsSync(wasmDirectory) &&
+        fs.existsSync(zkeyFinal) &&
+        fs.existsSync(verificationKey)
+    ) {
+        console.log(`\n✓ Circuit ${circuitName} already compiled and built. Skipping build step.\n`);
+        return;
+    }
+
     if (!fs.existsSync(circuitFile)) {
         throw new Error(`Circuit file not found: ${circuitFile}`);
     }

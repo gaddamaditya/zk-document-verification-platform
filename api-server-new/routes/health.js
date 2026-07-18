@@ -8,9 +8,10 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+    success: true,
+    status: 'online',
+    zkpEngineAvailable: global.ZKP_ENGINE_AVAILABLE || false,
+    nodeVersion: process.version
   });
 });
 

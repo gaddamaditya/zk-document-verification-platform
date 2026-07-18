@@ -17,7 +17,8 @@ const { spawn } = require("child_process");
 const router = express.Router();
 
 const TEMP_DIR = path.join(__dirname, "..", "temp-verification");
-const ZKP_PROOFS_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification", "proofs");
+const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification");
+const ZKP_PROOFS_DIR = path.join(ZKP_ENGINE_DIR, "proofs");
 
 // Ensure main temp directory exists
 if (!fs.existsSync(TEMP_DIR)) {
@@ -64,23 +65,19 @@ const attachVerifyId = (req, res, next) => {
     next();
 };
 
-// ─── Helper: convert Windows path to WSL path ──────────────────
-function windowsToWslPath(winPath) {
-    const resolved = path.resolve(winPath);
-    const drive = resolved.charAt(0).toLowerCase();
-    const rest = resolved.slice(2).replace(/\\/g, "/");
-    return `/mnt/${drive}${rest}`;
-}
-
-// ─── Helper: run verification in WSL ──────────────────────────
+// ─── Helper: run verification natively ─────────────────────────
 function runVerification(runDir) {
     return new Promise((resolve, reject) => {
-        const wslRunDir = windowsToWslPath(runDir);
-        const cmd = `cd '${wslRunDir}' && snarkjs groth16 verify verification_key.json public.json proof.json`;
+        console.log(`[Verify] Executing: snarkjs groth16 verify verification_key.json public.json proof.json in ${runDir}`);
 
-        console.log(`[Verify] WSL command: wsl bash -lc "${cmd}"`);
-
-        const child = spawn("wsl", ["bash", "-lc", cmd]);
+        const child = spawn("snarkjs", ["groth16", "verify", "verification_key.json", "public.json", "proof.json"], {
+            cwd: runDir,
+            shell: true,
+            env: {
+                ...process.env,
+                PATH: `${path.resolve(ZKP_ENGINE_DIR, "node_modules", ".bin")}${path.delimiter}${process.env.PATH || ""}`
+            }
+        });
 
         let stdout = "";
         let stderr = "";
@@ -98,13 +95,20 @@ function runVerification(runDir) {
         });
 
         child.on("error", (err) => {
-            reject(new Error(`Failed to start WSL verification: ${err.message}`));
+            reject(new Error(`Failed to start verification: ${err.message}`));
         });
     });
 }
 
 // POST endpoint for verifying proofs
 router.post("/", attachVerifyId, uploadFields, async (req, res) => {
+    if (!global.ZKP_ENGINE_AVAILABLE) {
+        return res.status(503).json({
+            success: false,
+            message: "ZKP Engine is not available on this deployment."
+        });
+    }
+
     let runDir = null;
     try {
         if (!req.files || !req.files.proof || !req.files.public) {
@@ -129,7 +133,7 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
         }
 
         // Read claims metadata saved during proof generation
-        const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification");
+        // ZKP_ENGINE_DIR defined globally at the top
         const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
         let claims = [];
         try {

@@ -94,23 +94,18 @@ function findUploadedFile(fileId) {
     return match ? path.join(UPLOADS_DIR, match) : null;
 }
 
-// ─── Helper: convert Windows path to WSL path ──────────────────
-function windowsToWslPath(winPath) {
-    const resolved = path.resolve(winPath);
-    const drive = resolved.charAt(0).toLowerCase();
-    const rest = resolved.slice(2).replace(/\\/g, "/");
-    return `/mnt/${drive}${rest}`;
-}
-
-// ─── Helper: run main.js inside WSL ─────────────────────────────
+// ─── Helper: run main.js natively ───────────────────────────────
 function runZKPPipeline(documentFileName, claimIndicesStr) {
     return new Promise((resolve, reject) => {
-        const wslZkpDir = windowsToWslPath(ZKP_ENGINE_DIR);
-        const cmd = `cd '${wslZkpDir}' && node main.js 'documents/${documentFileName}'`;
+        console.log(`[ZKP] Executing: node main.js "${path.join("documents", documentFileName)}" in ${ZKP_ENGINE_DIR}`);
 
-        console.log(`[ZKP] WSL command: wsl bash -lc "${cmd}"`);
-
-        const child = spawn("wsl", ["bash", "-lc", cmd]);
+        const child = spawn("node", ["main.js", path.join("documents", documentFileName)], {
+            cwd: ZKP_ENGINE_DIR,
+            env: {
+                ...process.env,
+                PATH: `${path.resolve(ZKP_ENGINE_DIR, "node_modules", ".bin")}${path.delimiter}${process.env.PATH || ""}`
+            }
+        });
 
         let stdout = "";
         let stderr = "";
@@ -128,8 +123,10 @@ function runZKPPipeline(documentFileName, claimIndicesStr) {
         // Pipe claim indices to stdin after a short delay to let the
         // menu prompt appear
         setTimeout(() => {
-            child.stdin.write(claimIndicesStr + "\n");
-            child.stdin.end();
+            if (child.writable || child.stdin?.writable) {
+                child.stdin.write(claimIndicesStr + "\n");
+                child.stdin.end();
+            }
         }, 2000);
 
         child.on("close", (code) => {
@@ -155,6 +152,13 @@ function runZKPPipeline(documentFileName, claimIndicesStr) {
 // ─── POST / ─────────────────────────────────────────────────────
 router.post("/", async (req, res) => {
     try {
+        if (!global.ZKP_ENGINE_AVAILABLE) {
+            return res.status(503).json({
+                success: false,
+                message: "ZKP Engine is not available on this deployment."
+            });
+        }
+
         const { fileId, claims } = req.body;
 
         // ── Validate request ────────────────────────────────────

@@ -1,7 +1,7 @@
 /**
  * OCR extraction route.
  * POST /api/ocr — runs OCR + attribute extraction on an uploaded file
- * by invoking the ZKP engine's extractOnly.js script via WSL.
+ * by invoking the ZKP engine's extractOnly.js script natively.
  *
  * Request body:  { "fileId": "<uuid>" }
  * Response:      { "success": true, "documentType": "AADHAAR", "attributes": { ... } }
@@ -26,23 +26,14 @@ function findUploadedFile(fileId) {
     return match ? path.join(UPLOADS_DIR, match) : null;
 }
 
-// ─── Helper: convert Windows path to WSL path ──────────────────
-function windowsToWslPath(winPath) {
-    const resolved = path.resolve(winPath);
-    const drive = resolved.charAt(0).toLowerCase();
-    const rest = resolved.slice(2).replace(/\\/g, "/");
-    return `/mnt/${drive}${rest}`;
-}
-
-// ─── Helper: run extractOnly.js inside WSL ─────────────────────
+// ─── Helper: run extractOnly.js natively ────────────────────────
 function runExtraction(documentFileName) {
     return new Promise((resolve, reject) => {
-        const wslZkpDir = windowsToWslPath(ZKP_ENGINE_DIR);
-        const cmd = `cd '${wslZkpDir}' && node extractOnly.js 'documents/${documentFileName}'`;
+        console.log(`[OCR] Executing: node extractOnly.js "${path.join("documents", documentFileName)}" in ${ZKP_ENGINE_DIR}`);
 
-        console.log(`[OCR] WSL command: wsl bash -lc "${cmd}"`);
-
-        const child = spawn("wsl", ["bash", "-lc", cmd]);
+        const child = spawn("node", ["extractOnly.js", path.join("documents", documentFileName)], {
+            cwd: ZKP_ENGINE_DIR
+        });
 
         let stdout = "";
         let stderr = "";
@@ -77,6 +68,13 @@ function runExtraction(documentFileName) {
 // ─── POST / ─────────────────────────────────────────────────────
 router.post("/", async (req, res) => {
     try {
+        if (!global.ZKP_ENGINE_AVAILABLE) {
+            return res.status(503).json({
+                success: false,
+                message: "ZKP Engine is not available on this deployment."
+            });
+        }
+
         const { fileId } = req.body;
 
         if (!fileId) {
@@ -108,7 +106,7 @@ router.post("/", async (req, res) => {
         fs.copyFileSync(uploadedFilePath, destPath);
         console.log(`[OCR] Copied to: ${destPath}`);
 
-        // Run extraction via WSL
+        // Run extraction natively
         const jsonOutput = await runExtraction(originalName);
         console.log(`[OCR] Raw output: ${jsonOutput}`);
 

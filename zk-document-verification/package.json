@@ -14,7 +14,8 @@
     "mammoth": "^1.12.0",
     "node-tesseract-ocr": "^2.2.1",
     "pdf-parse": "^1.1.4",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "snarkjs": "^0.7.6"
   },
   "description": "## Overview"
 }
