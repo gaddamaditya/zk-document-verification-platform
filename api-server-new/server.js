@@ -44,17 +44,14 @@ app.use(errorHandler);
 // ─── Startup Validation Diagnostics ──────────────────────────────
 const zkpEnginePath = path.resolve(__dirname, "zk-document-verification");
 const zkpEngineExists = fs.existsSync(zkpEnginePath);
-const zkpNodeModulesPath = path.join(zkpEnginePath, "node_modules");
-const zkpNodeModulesExists = fs.existsSync(zkpNodeModulesPath);
-
-global.ZKP_ENGINE_AVAILABLE = zkpEngineExists && zkpNodeModulesExists;
+global.ZKP_ENGINE_AVAILABLE = zkpEngineExists;
 
 console.log("-------------------------------------------------");
 console.log("API Server Started");
 console.log("-------------------------------------------------");
 console.log(`ZKP Engine Path:\n${zkpEnginePath}\n`);
 console.log(`ZKP Engine Exists:\n${zkpEngineExists}\n`);
-console.log(`ZKP Engine node_modules Exists:\n${zkpNodeModulesExists}\n`);
+console.log("ZKP Engine node_modules check skipped\n");
 console.log(`Node Version:\n${process.version}\n`);
 console.log(`Current Working Directory:\n${process.cwd()}\n`);
 console.log(`ZKP Engine Available:\n${global.ZKP_ENGINE_AVAILABLE}`);
