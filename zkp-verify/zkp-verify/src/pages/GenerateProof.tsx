@@ -17,6 +17,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/config';
 
 const claimOptions = [
   { id: 'name_verification', label: 'Name Verification' },
@@ -207,7 +208,9 @@ export default function GenerateProof() {
       const formData = new FormData();
       formData.append('document', selectedFile);
 
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const url = `${API_BASE_URL}/api/upload`;
+      console.log(`[GenerateProof] Upload URL: ${url}`);
+      const res = await fetch(url, {
         method: 'POST',
         body: formData,
       });
@@ -238,7 +241,9 @@ export default function GenerateProof() {
     setOcrData(null);
 
     try {
-      const res = await fetch('http://localhost:3001/api/ocr', {
+      const url = `${API_BASE_URL}/api/ocr`;
+      console.log(`[GenerateProof] OCR URL: ${url}`);
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileId }),
@@ -273,7 +278,9 @@ export default function GenerateProof() {
     setGenerateResult(null);
 
     try {
-      const res = await fetch('http://localhost:3001/api/generate-proof', {
+      const url = `${API_BASE_URL}/api/generate-proof`;
+      console.log(`[GenerateProof] Generate Proof URL: ${url}`);
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -651,11 +658,11 @@ export default function GenerateProof() {
                 size="sm"
                 disabled={generateResult === null}
                 onClick={() => {
-                  if (file === 'proof.json') {
-                    window.open('http://localhost:3001/api/download/proof', '_blank');
-                  } else if (file === 'public.json') {
-                    window.open('http://localhost:3001/api/download/public', '_blank');
-                  }
+                  const url = file === 'proof.json'
+                    ? `${API_BASE_URL}/api/download/proof`
+                    : `${API_BASE_URL}/api/download/public`;
+                  console.log(`[GenerateProof] Download URL for ${file}: ${url}`);
+                  window.open(url, '_blank');
                 }}
               >
                 Download

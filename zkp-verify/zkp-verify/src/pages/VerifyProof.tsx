@@ -16,6 +16,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/config';
 
 type VerificationState = 'idle' | 'verifying' | 'valid' | 'invalid' | 'error';
 
@@ -200,7 +201,9 @@ export default function VerifyProof() {
       formData.append('proof', files.proof);
       formData.append('public', files.public);
 
-      const res = await fetch('http://localhost:3001/api/verify-proof', {
+      const url = `${API_BASE_URL}/api/verify-proof`;
+      console.log(`[VerifyProof] Verify Proof URL: ${url}`);
+      const res = await fetch(url, {
         method: 'POST',
         body: formData,
       });
