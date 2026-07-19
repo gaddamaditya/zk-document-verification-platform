@@ -644,7 +644,7 @@ export default function GenerateProof() {
         icon={Download}
       >
         <div className="space-y-3">
-          {['proof.json', 'public.json'].map((file) => (
+          {['proof.json', 'public.json', 'verification_key.json'].map((file) => (
             <div
               key={file}
               className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
@@ -658,10 +658,15 @@ export default function GenerateProof() {
                 size="sm"
                 disabled={generateResult === null}
                 onClick={() => {
-                  const url = file === 'proof.json'
-                    ? `${API_BASE_URL}/api/download/proof`
-                    : `${API_BASE_URL}/api/download/public`;
-                  console.log(`[GenerateProof] Download URL for ${file}: ${url}`);
+                  let url = '';
+                  if (file === 'proof.json') {
+                    url = `${API_BASE_URL}/api/download/proof`;
+                  } else if (file === 'public.json') {
+                    url = `${API_BASE_URL}/api/download/public`;
+                  } else if (file === 'verification_key.json') {
+                    url = `${API_BASE_URL}/api/download/verification-key`;
+                  }
+                  console.log("Downloading:", url);
                   window.open(url, '_blank');
                 }}
               >
