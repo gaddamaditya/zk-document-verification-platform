@@ -16,7 +16,7 @@ const router = express.Router();
 
 // ─── Paths ──────────────────────────────────────────────────────
 const UPLOADS_DIR = path.join(__dirname, "..", "uploads");
-const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification");
+const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "zk-document-verification");
 const ZKP_DOCUMENTS_DIR = path.join(ZKP_ENGINE_DIR, "documents");
 const ZKP_PROOFS_DIR = path.join(ZKP_ENGINE_DIR, "proofs");
 

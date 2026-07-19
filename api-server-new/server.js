@@ -42,7 +42,7 @@ app.use("/api/ocr", ocrRouter);
 app.use(errorHandler);
 
 // ─── Startup Validation Diagnostics ──────────────────────────────
-const zkpEnginePath = path.resolve(__dirname, "..", "zk-document-verification");
+const zkpEnginePath = path.resolve(__dirname, "zk-document-verification");
 const zkpEngineExists = fs.existsSync(zkpEnginePath);
 const zkpNodeModulesPath = path.join(zkpEnginePath, "node_modules");
 const zkpNodeModulesExists = fs.existsSync(zkpNodeModulesPath);

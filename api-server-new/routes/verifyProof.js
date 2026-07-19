@@ -17,7 +17,7 @@ const { spawn } = require("child_process");
 const router = express.Router();
 
 const TEMP_DIR = path.join(__dirname, "..", "temp-verification");
-const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "..", "zk-document-verification");
+const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "zk-document-verification");
 const ZKP_PROOFS_DIR = path.join(ZKP_ENGINE_DIR, "proofs");
 
 // Ensure main temp directory exists

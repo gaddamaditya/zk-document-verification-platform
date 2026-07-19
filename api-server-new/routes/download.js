@@ -15,7 +15,6 @@ const router = express.Router();
 const ZKP_PROOFS_DIR = path.resolve(
     __dirname,
     "..",
-    "..",
     "zk-document-verification",
     "proofs"
 );
