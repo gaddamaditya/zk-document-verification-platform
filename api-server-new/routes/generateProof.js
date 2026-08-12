@@ -2,15 +2,14 @@
  * Generate Proof route.
  * POST /api/generate-proof
  *
- * Executes the existing zk-document-verification pipeline by spawning
- * `node main.js <document>` as a child process and piping claim
- * selections to stdin.
+ * Runs the ZKP pipeline in-process by directly requiring and calling
+ * the ZKP engine modules. This eliminates process.cwd() dependency,
+ * subprocess spawning, stdin piping, and PATH manipulation.
  */
 
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const { spawn } = require("child_process");
 
 const router = express.Router();
 
@@ -19,6 +18,19 @@ const UPLOADS_DIR = path.join(__dirname, "..", "uploads");
 const ZKP_ENGINE_DIR = path.resolve(__dirname, "..", "zk-document-verification");
 const ZKP_DOCUMENTS_DIR = path.join(ZKP_ENGINE_DIR, "documents");
 const ZKP_PROOFS_DIR = path.join(ZKP_ENGINE_DIR, "proofs");
+
+// ─── ZKP Engine modules (loaded in-process) ─────────────────────
+const extractPDF = require(path.join(ZKP_ENGINE_DIR, "extractors", "pdfExtractor"));
+const extractImage = require(path.join(ZKP_ENGINE_DIR, "extractors", "imageExtractor"));
+const detectDocumentType = require(path.join(ZKP_ENGINE_DIR, "processors", "documentType"));
+const extractAttributes = require(path.join(ZKP_ENGINE_DIR, "processors", "attributeExtractor"));
+const generateClaims = require(path.join(ZKP_ENGINE_DIR, "processors", "claims", "claimGenerator"));
+const generateInput = require(path.join(ZKP_ENGINE_DIR, "processors", "inputGenerators", "universalInputGenerator"));
+const circuits = require(path.join(ZKP_ENGINE_DIR, "config", "circuits"));
+const buildCircuit = require(path.join(ZKP_ENGINE_DIR, "processors", "compiler", "buildCircuit"));
+const generateWitness = require(path.join(ZKP_ENGINE_DIR, "processors", "prover", "witnessGenerator"));
+const generateProofZKP = require(path.join(ZKP_ENGINE_DIR, "processors", "prover", "proofGenerator"));
+const verifyProofZKP = require(path.join(ZKP_ENGINE_DIR, "processors", "prover", "verifyProof"));
 
 // ─── Frontend claim ID → ZKP engine claim name ─────────────────
 const CLAIM_MAP = {
@@ -32,32 +44,7 @@ const CLAIM_MAP = {
     certificate_authenticity: "GRAND_TOTAL",
 };
 
-// ─── Claim → menu index mapping ────────────────────────────────
-// Derived from claimGenerator.js — the order claims are pushed
-// determines their 1-based index in the interactive menu.
-
-const AADHAAR_CLAIMS = ["NAME", "AGE_18_PLUS", "GENDER"];
-const MARKSHEET_CLAIMS = ["STUDENT_NAME", "RESULT", "GRADE", "GRAND_TOTAL"];
-
-function getClaimIndices(claims) {
-    // Try AADHAAR mapping first
-    let allAadhaar = claims.every((c) => AADHAAR_CLAIMS.includes(c));
-    if (allAadhaar) {
-        return claims.map((c) => AADHAAR_CLAIMS.indexOf(c) + 1);
-    }
-
-    // Try MARKSHEET mapping
-    let allMarksheet = claims.every((c) => MARKSHEET_CLAIMS.includes(c));
-    if (allMarksheet) {
-        return claims.map((c) => MARKSHEET_CLAIMS.indexOf(c) + 1);
-    }
-
-    return null;
-}
-
 // ─── Claim → circuit name mapping ──────────────────────────────
-// Mirrors the logic in main.js and config/circuits.js
-
 const CLAIM_TO_CIRCUIT = {
     NAME: "NameVerifier",
     AGE_18_PLUS: "AgeVerifier",
@@ -69,12 +56,10 @@ const CLAIM_TO_CIRCUIT = {
 };
 
 function getCircuitName(claims) {
-    // Single claim → direct mapping
     if (claims.length === 1) {
         return CLAIM_TO_CIRCUIT[claims[0]] || null;
     }
 
-    // Multi-attribute: exactly NAME + AGE_18_PLUS + GENDER
     if (
         claims.length === 3 &&
         claims.includes("NAME") &&
@@ -94,68 +79,13 @@ function findUploadedFile(fileId) {
     return match ? path.join(UPLOADS_DIR, match) : null;
 }
 
-// ─── Helper: run main.js natively ───────────────────────────────
-function runZKPPipeline(documentFileName, claimIndicesStr) {
-    return new Promise((resolve, reject) => {
-        console.log(`[ZKP] Executing: node main.js "${path.join("documents", documentFileName)}" in ${ZKP_ENGINE_DIR}`);
-
-        const child = spawn("node", ["main.js", path.join("documents", documentFileName)], {
-            cwd: ZKP_ENGINE_DIR,
-            env: {
-                ...process.env,
-                PATH: `${path.resolve(ZKP_ENGINE_DIR, "node_modules", ".bin")}${path.delimiter}${process.env.PATH || ""}`
-            }
-        });
-
-        let stdout = "";
-        let stderr = "";
-
-        child.stdout.on("data", (data) => {
-            stdout += data.toString();
-            console.log(`[ZKP] ${data.toString().trim()}`);
-        });
-
-        child.stderr.on("data", (data) => {
-            stderr += data.toString();
-            console.error(`[ZKP ERR] ${data.toString().trim()}`);
-        });
-
-        // Pipe claim indices to stdin after a short delay to let the
-        // menu prompt appear
-        setTimeout(() => {
-            if (child.writable || child.stdin?.writable) {
-                child.stdin.write(claimIndicesStr + "\n");
-                child.stdin.end();
-            }
-        }, 2000);
-
-        child.on("close", (code) => {
-            if (code === 0) {
-                resolve({ stdout, stderr });
-            } else {
-                reject(
-                    new Error(
-                        `ZKP pipeline exited with code ${code}.\n` +
-                            `stdout: ${stdout}\n` +
-                            `stderr: ${stderr}`
-                    )
-                );
-            }
-        });
-
-        child.on("error", (err) => {
-            reject(new Error(`Failed to start ZKP pipeline: ${err.message}`));
-        });
-    });
-}
-
 // ─── POST / ─────────────────────────────────────────────────────
 router.post("/", async (req, res) => {
     try {
         if (!global.ZKP_ENGINE_AVAILABLE) {
             return res.status(503).json({
                 success: false,
-                message: "ZKP Engine is not available on this deployment."
+                error: "ZKP Engine is not available on this deployment.",
             });
         }
 
@@ -165,14 +95,14 @@ router.post("/", async (req, res) => {
         if (!fileId) {
             return res.status(400).json({
                 success: false,
-                message: "fileId is required",
+                error: "fileId is required",
             });
         }
 
         if (!claims || !Array.isArray(claims) || claims.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "At least one claim must be selected",
+                error: "At least one claim must be selected",
             });
         }
 
@@ -184,44 +114,45 @@ router.post("/", async (req, res) => {
         console.log("[GenerateProof] Frontend claims:", claims);
         console.log("[GenerateProof] Normalized claims:", normalizedClaims);
 
+        // ── Only single-claim supported for now ─────────────────
+        if (normalizedClaims.length !== 1) {
+            return res.status(400).json({
+                success: false,
+                error: "Only single-claim proof generation is supported at this time.",
+            });
+        }
+
+        const selectedClaim = normalizedClaims[0];
+
+        // ── Validate claim has circuit config ───────────────────
+        const circuitConfig = circuits[selectedClaim];
+        if (!circuitConfig) {
+            return res.status(400).json({
+                success: false,
+                error: `Unsupported claim: ${selectedClaim}`,
+            });
+        }
+
+        const circuitName = circuitConfig.circuit;
+
+        console.log(`[GenerateProof] Selected claim: ${selectedClaim}`);
+        console.log(`[GenerateProof] Circuit: ${circuitName}`);
+
         // ── Locate uploaded file ────────────────────────────────
         const uploadedFilePath = findUploadedFile(fileId);
         if (!uploadedFilePath) {
             return res.status(404).json({
                 success: false,
-                message: `Uploaded file not found for fileId: ${fileId}`,
+                error: `Uploaded file not found for fileId: ${fileId}`,
             });
         }
 
-        console.log(`\n[GenerateProof] File found: ${uploadedFilePath}`);
+        console.log(`[GenerateProof] File found: ${uploadedFilePath}`);
 
-        // ── Map claims to menu indices ──────────────────────────
-        const claimIndices = getClaimIndices(normalizedClaims);
-        if (!claimIndices) {
-            return res.status(400).json({
-                success: false,
-                message: `Unsupported claim combination: ${normalizedClaims.join(", ")}. Claims must all be from the same document type.`,
-            });
-        }
-
-        // ── Determine circuit name for output file lookup ───────
-        const circuitName = getCircuitName(normalizedClaims);
-        if (!circuitName) {
-            return res.status(400).json({
-                success: false,
-                message: `Unsupported claim combination: ${normalizedClaims.join(", ")}`,
-            });
-        }
-
-        console.log(`[GenerateProof] Claims: ${normalizedClaims.join(", ")}`);
-        console.log(`[GenerateProof] Claim indices: ${claimIndices.join(" ")}`);
-        console.log(`[GenerateProof] Circuit: ${circuitName}`);
-
-        // ── Copy file to zk-document-verification/documents/ ────
+        // ── Copy file to ZKP documents directory ────────────────
         const originalName = path.basename(uploadedFilePath).replace(/^[a-f0-9-]+-/, "");
         const destPath = path.join(ZKP_DOCUMENTS_DIR, originalName);
 
-        // Ensure documents directory exists
         if (!fs.existsSync(ZKP_DOCUMENTS_DIR)) {
             fs.mkdirSync(ZKP_DOCUMENTS_DIR, { recursive: true });
         }
@@ -229,15 +160,74 @@ router.post("/", async (req, res) => {
         fs.copyFileSync(uploadedFilePath, destPath);
         console.log(`[GenerateProof] Copied to: ${destPath}`);
 
-        // ── Execute ZKP pipeline ────────────────────────────────
-        const claimIndicesStr = claimIndices.join(" ");
+        // ── Step 1: Extract text ────────────────────────────────
+        console.log("[GenerateProof] Step 1: Extracting text...");
+        const extension = path.extname(destPath).toLowerCase();
+        let extractedText = "";
 
-        console.log(`[GenerateProof] Starting pipeline: node main.js documents/${originalName}`);
-        console.log(`[GenerateProof] Stdin input: "${claimIndicesStr}"`);
+        switch (extension) {
+            case ".pdf":
+                extractedText = await extractPDF(destPath);
+                break;
+            case ".jpg":
+            case ".jpeg":
+            case ".png":
+                extractedText = await extractImage(destPath);
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    error: `Unsupported document format: ${extension}`,
+                });
+        }
 
-        await runZKPPipeline(originalName, claimIndicesStr);
+        console.log("[GenerateProof] ✓ Text extraction completed");
 
-        console.log(`[GenerateProof] Pipeline completed successfully`);
+        // ── Step 2: Detect document type ────────────────────────
+        console.log("[GenerateProof] Step 2: Detecting document type...");
+        const documentType = detectDocumentType(extractedText);
+        console.log(`[GenerateProof] ✓ Document type: ${documentType}`);
+
+        // ── Step 3: Extract attributes ──────────────────────────
+        console.log("[GenerateProof] Step 3: Extracting attributes...");
+        const attributes = extractAttributes(documentType, extractedText);
+        console.log("[GenerateProof] ✓ Attributes extracted");
+
+        // ── Step 4: Validate claim is available ─────────────────
+        console.log("[GenerateProof] Step 4: Validating claims...");
+        const availableClaims = generateClaims(attributes);
+        if (!availableClaims.includes(selectedClaim)) {
+            return res.status(400).json({
+                success: false,
+                error: `Claim "${selectedClaim}" is not available for this document. Available: ${availableClaims.join(", ")}`,
+            });
+        }
+        console.log(`[GenerateProof] ✓ Claim "${selectedClaim}" is valid`);
+
+        // ── Step 5: Generate input ──────────────────────────────
+        console.log("[GenerateProof] Step 5: Generating circuit input...");
+        await generateInput(selectedClaim, attributes);
+        console.log("[GenerateProof] ✓ Input generated");
+
+        // ── Step 6: Build circuit (skip if pre-built) ───────────
+        console.log("[GenerateProof] Step 6: Checking circuit...");
+        buildCircuit(circuitName);
+        console.log("[GenerateProof] ✓ Circuit ready");
+
+        // ── Step 7: Generate witness ────────────────────────────
+        console.log("[GenerateProof] Step 7: Generating witness...");
+        generateWitness(selectedClaim);
+        console.log("[GenerateProof] ✓ Witness generated");
+
+        // ── Step 8: Generate proof ──────────────────────────────
+        console.log("[GenerateProof] Step 8: Generating Groth16 proof...");
+        generateProofZKP(selectedClaim);
+        console.log("[GenerateProof] ✓ Proof generated");
+
+        // ── Step 9: Verify proof ────────────────────────────────
+        console.log("[GenerateProof] Step 9: Verifying proof...");
+        verifyProofZKP(selectedClaim);
+        console.log("[GenerateProof] ✓ Proof verified");
 
         // ── Verify output files exist ───────────────────────────
         const proofFile = path.join(ZKP_ENGINE_DIR, `${circuitName}_proof.json`);
@@ -252,7 +242,8 @@ router.post("/", async (req, res) => {
         if (missingFiles.length > 0) {
             return res.status(500).json({
                 success: false,
-                message: `Pipeline completed but output files are missing: ${missingFiles.join(", ")}`,
+                error: "Pipeline completed but output files are missing",
+                details: `Missing: ${missingFiles.join(", ")}`,
             });
         }
 
@@ -271,12 +262,14 @@ router.post("/", async (req, res) => {
             JSON.stringify({ claims: normalizedClaims }, null, 2)
         );
 
-        console.log(`[GenerateProof] Output files copied to proofs/`);
+        console.log("[GenerateProof] ✓ Output files copied to proofs/");
+        console.log("[GenerateProof] ✓ Pipeline completed successfully");
 
         // ── Return success ──────────────────────────────────────
         return res.status(200).json({
             success: true,
             message: "Proof generated successfully",
+            fileId: fileId,
             claims: normalizedClaims,
             generatedFiles: [
                 "proof.json",
@@ -285,10 +278,11 @@ router.post("/", async (req, res) => {
             ],
         });
     } catch (error) {
-        console.error(`[GenerateProof] Error: ${error.message}`);
+        console.error(`[GenerateProof] Error:`, error);
         return res.status(500).json({
             success: false,
-            message: error.message,
+            error: "ZKP pipeline failed",
+            details: error.message,
         });
     }
 });

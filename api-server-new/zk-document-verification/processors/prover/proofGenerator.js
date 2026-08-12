@@ -1,7 +1,9 @@
 const fs = require("fs");
+const path = require("path");
 const { execSync } = require("child_process");
 
 const circuits = require("../../config/circuits");
+const { ZKP_ROOT } = circuits;
 
 function generateProof(selectedClaim) {
 
@@ -13,10 +15,10 @@ function generateProof(selectedClaim) {
 
     const circuit = config.circuit;
 
-    const witnessFile = `${circuit}.wtns`;
-    const zkeyFile = `${circuit}_final.zkey`;
-    const proofFile = `${circuit}_proof.json`;
-    const publicSignalsFile = `${circuit}_public.json`;
+    const witnessFile = path.join(ZKP_ROOT, `${circuit}.wtns`);
+    const zkeyFile = path.join(ZKP_ROOT, `${circuit}_final.zkey`);
+    const proofFile = path.join(ZKP_ROOT, `${circuit}_proof.json`);
+    const publicSignalsFile = path.join(ZKP_ROOT, `${circuit}_public.json`);
 
     if (!fs.existsSync(witnessFile)) {
         throw new Error(`Witness file not found: ${witnessFile}`);
@@ -26,10 +28,14 @@ function generateProof(selectedClaim) {
         throw new Error(`Final zKey not found: ${zkeyFile}`);
     }
 
+    // Resolve snarkjs binary — prefer local node_modules, fallback to global
+    const localSnarkjs = path.join(ZKP_ROOT, "node_modules", ".bin", "snarkjs");
+    const snarkjsBin = fs.existsSync(localSnarkjs) ? `"${localSnarkjs}"` : "snarkjs";
+
     console.log("\n========== Proof Generation ==========\n");
 
     execSync(
-        `snarkjs groth16 prove ${zkeyFile} ${witnessFile} ${proofFile} ${publicSignalsFile}`,
+        `${snarkjsBin} groth16 prove "${zkeyFile}" "${witnessFile}" "${proofFile}" "${publicSignalsFile}"`,
         { stdio: "inherit" }
     );
 

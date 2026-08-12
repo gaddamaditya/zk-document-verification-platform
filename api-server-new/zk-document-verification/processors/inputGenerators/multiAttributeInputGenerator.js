@@ -1,4 +1,6 @@
 const fs = require("fs");
+const path = require("path");
+const { ZKP_ROOT } = require("../../config/circuits");
 
 function convertToAsciiArray(text) {
 
@@ -35,7 +37,7 @@ function generateMultiAttributeInput(attributes) {
 
         birthYear: parseInt(attributes.dob.split("/")[2]),
 
-        currentYear: 2026,
+        currentYear: new Date().getFullYear(),
 
         // ---------- Gender ----------
 
@@ -45,10 +47,13 @@ function generateMultiAttributeInput(attributes) {
 
     };
 
-    fs.writeFileSync(
-        "inputs/multiAttributeInput.json",
-        JSON.stringify(input, null, 4)
-    );
+    const inputsDir = path.join(ZKP_ROOT, "inputs");
+    if (!fs.existsSync(inputsDir)) {
+        fs.mkdirSync(inputsDir, { recursive: true });
+    }
+
+    const outputPath = path.join(inputsDir, "multiAttributeInput.json");
+    fs.writeFileSync(outputPath, JSON.stringify(input, null, 4));
 
     console.log("\nMulti Attribute Input Generated.");
 

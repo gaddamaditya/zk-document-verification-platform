@@ -1,7 +1,9 @@
 const fs = require("fs");
+const path = require("path");
 const { execSync } = require("child_process");
 
 const circuits = require("../../config/circuits");
+const { ZKP_ROOT } = circuits;
 
 function verifyProof(selectedClaim) {
 
@@ -13,9 +15,9 @@ function verifyProof(selectedClaim) {
 
     const circuit = config.circuit;
 
-    const verificationKey = `verification_key_${circuit}.json`;
-    const proofFile = `${circuit}_proof.json`;
-    const publicSignalsFile = `${circuit}_public.json`;
+    const verificationKey = path.join(ZKP_ROOT, `verification_key_${circuit}.json`);
+    const proofFile = path.join(ZKP_ROOT, `${circuit}_proof.json`);
+    const publicSignalsFile = path.join(ZKP_ROOT, `${circuit}_public.json`);
 
     if (!fs.existsSync(verificationKey)) {
         throw new Error(`Verification key not found: ${verificationKey}`);
@@ -29,10 +31,14 @@ function verifyProof(selectedClaim) {
         throw new Error(`Public signals file not found: ${publicSignalsFile}`);
     }
 
+    // Resolve snarkjs binary — prefer local node_modules, fallback to global
+    const localSnarkjs = path.join(ZKP_ROOT, "node_modules", ".bin", "snarkjs");
+    const snarkjsBin = fs.existsSync(localSnarkjs) ? `"${localSnarkjs}"` : "snarkjs";
+
     console.log("\n========== Proof Verification ==========\n");
 
     execSync(
-        `snarkjs groth16 verify ${verificationKey} ${publicSignalsFile} ${proofFile}`,
+        `${snarkjsBin} groth16 verify "${verificationKey}" "${publicSignalsFile}" "${proofFile}"`,
         { stdio: "inherit" }
     );
 

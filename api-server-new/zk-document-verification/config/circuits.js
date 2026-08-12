@@ -1,50 +1,61 @@
+const path = require("path");
+
+// ─── ZKP_ROOT ───────────────────────────────────────────────────
+// The absolute path to the zk-document-verification project root.
+// Derived from __dirname so it works regardless of process.cwd().
+// Every module in the ZKP engine should import this and use
+// path.join(ZKP_ROOT, ...) for all filesystem operations.
+const ZKP_ROOT = path.resolve(__dirname, "..");
+
 module.exports = {
+
+    ZKP_ROOT,
 
     NAME: {
         circuit: "NameVerifier",
-        inputFile: "inputs/nameInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "nameInput.json"),
         description: "Verify Name"
     },
 
     AGE_18_PLUS: {
         circuit: "AgeVerifier",
-        inputFile: "inputs/ageInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "ageInput.json"),
         description: "Verify Age is 18+"
     },
 
     GENDER: {
         circuit: "GenderVerifier",
-        inputFile: "inputs/genderInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "genderInput.json"),
         description: "Verify Gender"
     },
 
     RESULT: {
         circuit: "ResultVerifier",
-        inputFile: "inputs/resultInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "resultInput.json"),
         description: "Verify Result"
     },
 
     GRADE: {
         circuit: "GradeVerifier",
-        inputFile: "inputs/gradeInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "gradeInput.json"),
         description: "Verify Grade"
     },
 
     GRAND_TOTAL: {
         circuit: "GrandTotalVerifier",
-        inputFile: "inputs/grandTotalInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "grandTotalInput.json"),
         description: "Verify Grand Total"
     },
 
     STUDENT_NAME: {
         circuit: "StudentNameVerifier",
-        inputFile: "inputs/studentNameInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "studentNameInput.json"),
         description: "Verify Student Name"
     },
 
     MULTI_ATTRIBUTE: {
         circuit: "MultiAttributeVerifier",
-        inputFile: "inputs/multiAttributeInput.json",
+        inputFile: path.join(ZKP_ROOT, "inputs", "multiAttributeInput.json"),
         description: "Verify Multiple Attributes"
     }
 

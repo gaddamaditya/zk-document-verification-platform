@@ -1,4 +1,6 @@
 const fs = require("fs");
+const path = require("path");
+const { ZKP_ROOT } = require("../../config/circuits");
 
 function generateAgeInput(attributes) {
 
@@ -12,13 +14,13 @@ function generateAgeInput(attributes) {
 
     };
 
-    fs.writeFileSync(
+    const inputsDir = path.join(ZKP_ROOT, "inputs");
+    if (!fs.existsSync(inputsDir)) {
+        fs.mkdirSync(inputsDir, { recursive: true });
+    }
 
-        "inputs/ageInput.json",
-
-        JSON.stringify(input, null, 4)
-
-    );
+    const outputPath = path.join(inputsDir, "ageInput.json");
+    fs.writeFileSync(outputPath, JSON.stringify(input, null, 4));
 
     console.log("\nAge Circuit Input Generated.");
 

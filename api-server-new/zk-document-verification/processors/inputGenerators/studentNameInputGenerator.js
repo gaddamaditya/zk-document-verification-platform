@@ -1,4 +1,6 @@
 const fs = require("fs");
+const path = require("path");
+const { ZKP_ROOT } = require("../../config/circuits");
 
 function generateStudentNameInput(attributes) {
 
@@ -25,10 +27,13 @@ function generateStudentNameInput(attributes) {
         claimedStudentName: [...actualStudentName]
     };
 
-    fs.writeFileSync(
-        "inputs/studentNameInput.json",
-        JSON.stringify(input, null, 4)
-    );
+    const inputsDir = path.join(ZKP_ROOT, "inputs");
+    if (!fs.existsSync(inputsDir)) {
+        fs.mkdirSync(inputsDir, { recursive: true });
+    }
+
+    const outputPath = path.join(inputsDir, "studentNameInput.json");
+    fs.writeFileSync(outputPath, JSON.stringify(input, null, 4));
 
     console.log("Student Name Circuit Input Generated.");
 }
