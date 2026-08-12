@@ -61,10 +61,14 @@ router.post('/', upload.single('document'), (req, res) => {
 
   res.status(201).json({
     success: true,
+    message: 'File uploaded successfully',
     file: {
       id: file.filename.split('-')[0], // the uuid prefix
       originalName: file.originalname,
+      filename: file.filename,
+      path: file.path,
       mimeType: file.mimetype,
+      mimetype: file.mimetype,
       size: file.size,
       storedAs: file.filename,
       uploadedAt: new Date().toISOString(),

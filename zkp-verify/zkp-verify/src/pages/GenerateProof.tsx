@@ -210,26 +210,45 @@ export default function GenerateProof() {
 
       const url = `${API_BASE_URL}/api/upload`;
       console.log(`[GenerateProof] Upload URL: ${url}`);
-      const res = await fetch(url, {
-        method: 'POST',
-        body: formData,
-      });
 
-      const data = await res.json();
+      let res: Response;
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          body: formData,
+        });
+      } catch (networkErr) {
+        const message = networkErr instanceof Error ? networkErr.message : 'Unknown error';
+        setUploadError(
+          `Could not connect to the server. Make sure the backend is running at ${API_BASE_URL}. (${message})`
+        );
+        return;
+      }
+
+      let data: Record<string, unknown>;
+      try {
+        data = await res.json();
+      } catch {
+        setUploadError(`Invalid response from server (HTTP ${res.status}). The server may be misconfigured.`);
+        return;
+      }
 
       if (!res.ok) {
-        setUploadError(data.error || `Upload failed (HTTP ${res.status})`);
+        setUploadError((data.error as string) || `Upload failed (HTTP ${res.status})`);
         return;
       }
 
       const uploadedFile = data.file as UploadMeta;
       setUploadResult(uploadedFile);
 
-      // Auto-trigger OCR extraction
-      fetchOcr(uploadedFile.id);
+      // Auto-trigger OCR extraction (non-blocking — if OCR fails,
+      // upload is still considered successful)
+      fetchOcr(uploadedFile.id).catch((err) => {
+        console.warn('[GenerateProof] OCR auto-extraction failed (non-blocking):', err);
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setUploadError(`Network error: ${message}`);
+      setUploadError(`Upload error: ${message}`);
     } finally {
       setUploading(false);
     }
@@ -644,7 +663,7 @@ export default function GenerateProof() {
         icon={Download}
       >
         <div className="space-y-3">
-          {['proof.json', 'public.json', 'verification_key.json'].map((file) => (
+          {['proof.json', 'public.json'].map((file) => (
             <div
               key={file}
               className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
@@ -663,8 +682,6 @@ export default function GenerateProof() {
                     url = `${API_BASE_URL}/api/download/proof`;
                   } else if (file === 'public.json') {
                     url = `${API_BASE_URL}/api/download/public`;
-                  } else if (file === 'verification_key.json') {
-                    url = `${API_BASE_URL}/api/download/verification-key`;
                   }
                   console.log("Downloading:", url);
                   window.open(url, '_blank');

@@ -11,11 +11,6 @@ const fs = require('fs');
 const healthRoutes = require('./routes/health');
 const uploadRoutes = require('./routes/upload');
 const errorHandler = require('./middleware/errorHandler');
-const generateProofRouter = require("./routes/generateProof");
-const downloadRouter = require("./routes/download");
-const verifyProofRouter = require("./routes/verifyProof");
-const ocrRouter = require("./routes/ocr");
-
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,10 +28,26 @@ app.use(express.json());
 // ─── Routes ─────────────────────────────────────────────────────
 app.use('/api/health', healthRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use("/api/generate-proof", generateProofRouter);
-app.use("/api/download", downloadRouter);
-app.use("/api/verify-proof", verifyProofRouter);
-app.use("/api/ocr", ocrRouter);
+
+// ─── Optional routes (depend on ZKP engine) ─────────────────────
+// These routes are loaded conditionally so the server can still
+// start and handle uploads even if the ZKP engine is not installed.
+const optionalRoutes = [
+  { path: '/api/generate-proof', module: './routes/generateProof' },
+  { path: '/api/download',       module: './routes/download' },
+  { path: '/api/verify-proof',   module: './routes/verifyProof' },
+  { path: '/api/ocr',            module: './routes/ocr' },
+];
+
+for (const route of optionalRoutes) {
+  try {
+    const router = require(route.module);
+    app.use(route.path, router);
+    console.log(`  ✓ Loaded optional route: ${route.path}`);
+  } catch (err) {
+    console.warn(`  ⚠ Skipped optional route ${route.path}: ${err.message}`);
+  }
+}
 
 // ─── Error handling (must be after routes) ──────────────────────
 app.use(errorHandler);

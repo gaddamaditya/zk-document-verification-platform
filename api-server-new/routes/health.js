@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
   res.json({
     success: true,
+    message: 'API server is running',
     status: 'online',
     zkpEngineAvailable: global.ZKP_ENGINE_AVAILABLE || false,
     nodeVersion: process.version
