@@ -25,6 +25,18 @@ if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
+// Map verification key filenames to claim arrays
+const VKEY_TO_CLAIMS = {
+    "verification_key_NameVerifier.json": ["NAME"],
+    "verification_key_AgeVerifier.json": ["AGE_18_PLUS"],
+    "verification_key_GenderVerifier.json": ["GENDER"],
+    "verification_key_StudentNameVerifier.json": ["STUDENT_NAME"],
+    "verification_key_ResultVerifier.json": ["RESULT"],
+    "verification_key_GradeVerifier.json": ["GRADE"],
+    "verification_key_GrandTotalVerifier.json": ["GRAND_TOTAL"],
+    "verification_key_MultiAttributeVerifier.json": ["NAME", "AGE_18_PLUS", "GENDER"],
+};
+
 // Set up multer disk storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -56,7 +68,8 @@ const upload = multer({
 
 const uploadFields = upload.fields([
     { name: "proof", maxCount: 1 },
-    { name: "public", maxCount: 1 }
+    { name: "public", maxCount: 1 },
+    { name: "verificationKey", maxCount: 1 }
 ]);
 
 // Middleware to assign a unique verify ID
@@ -96,76 +109,77 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
             });
         }
 
-        // Read claims metadata saved during proof generation
-        const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
-        let claims = [];
-        try {
-            if (fs.existsSync(metaPath)) {
-                const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-                claims = meta.claims || [];
-            }
-        } catch (metaErr) {
-            console.error(`[Verify] Could not read claims metadata: ${metaErr.message}`);
-        }
-
-        // Determine verification key filename using explicit mappings
-        let keyFilename = null;
-        if (claims.length === 1) {
-            const claim = claims[0];
-            if (claim === "NAME") {
-                keyFilename = "verification_key_NameVerifier.json";
-            } else if (claim === "AGE_18_PLUS") {
-                keyFilename = "verification_key_AgeVerifier.json";
-            } else if (claim === "GENDER") {
-                keyFilename = "verification_key_GenderVerifier.json";
-            } else if (claim === "RESULT") {
-                keyFilename = "verification_key_ResultVerifier.json";
-            } else if (claim === "STUDENT_NAME") {
-                keyFilename = "verification_key_StudentNameVerifier.json";
-            } else if (claim === "GRADE") {
-                keyFilename = "verification_key_GradeVerifier.json";
-            } else if (claim === "GRAND_TOTAL") {
-                keyFilename = "verification_key_GrandTotalVerifier.json";
-            }
-        } else if (
-            claims.length === 3 &&
-            claims.includes("NAME") &&
-            claims.includes("AGE_18_PLUS") &&
-            claims.includes("GENDER")
-        ) {
-            keyFilename = "verification_key_MultiAttributeVerifier.json";
-        }
-
-        if (!keyFilename) {
-            return res.status(400).json({
-                success: false,
-                message: "Unsupported claim combination"
-            });
-        }
-
-        const sourceVkeyPath = path.join(ZKP_ENGINE_DIR, keyFilename);
-        if (!fs.existsSync(sourceVkeyPath)) {
-            return res.status(400).json({
-                success: false,
-                message: `Server-side verification key not found: ${keyFilename}`
-            });
-        }
-
-        // Read JSON files for in-process verification
-        const vkey = JSON.parse(fs.readFileSync(sourceVkeyPath, "utf-8"));
+        // Parse uploaded proof and public signals
         const proof = JSON.parse(fs.readFileSync(proofPath, "utf-8"));
         const publicSignals = JSON.parse(fs.readFileSync(publicPath, "utf-8"));
 
+        // Build list of candidate verification key files to try
+        const candidates = [];
+
+        // 1. If custom verificationKey was uploaded in request
+        const uploadedVkeyPath = path.join(runDir, "verification_key.json");
+        if (fs.existsSync(uploadedVkeyPath)) {
+            candidates.push({ name: "Uploaded Key", path: uploadedVkeyPath, claims: [] });
+        }
+
+        // 2. Read claims_metadata.json if present to prioritize expected key
+        const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
+        if (fs.existsSync(metaPath)) {
+            try {
+                const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+                const claims = meta.claims || [];
+                let keyFile = null;
+                if (claims.length === 1) {
+                    const c = claims[0];
+                    if (c === "NAME") keyFile = "verification_key_NameVerifier.json";
+                    else if (c === "AGE_18_PLUS") keyFile = "verification_key_AgeVerifier.json";
+                    else if (c === "GENDER") keyFile = "verification_key_GenderVerifier.json";
+                    else if (c === "RESULT") keyFile = "verification_key_ResultVerifier.json";
+                    else if (c === "STUDENT_NAME") keyFile = "verification_key_StudentNameVerifier.json";
+                    else if (c === "GRADE") keyFile = "verification_key_GradeVerifier.json";
+                    else if (c === "GRAND_TOTAL") keyFile = "verification_key_GrandTotalVerifier.json";
+                } else if (claims.length === 3 && claims.includes("NAME") && claims.includes("AGE_18_PLUS") && claims.includes("GENDER")) {
+                    keyFile = "verification_key_MultiAttributeVerifier.json";
+                }
+                if (keyFile) {
+                    const fullP = path.join(ZKP_ENGINE_DIR, keyFile);
+                    if (fs.existsSync(fullP)) {
+                        candidates.push({ name: keyFile, path: fullP, claims });
+                    }
+                }
+            } catch (mErr) {}
+        }
+
+        // 3. Add all available verification_key_*.json files as candidates
+        const availableKeys = fs.readdirSync(ZKP_ENGINE_DIR).filter(f => f.startsWith("verification_key_") && f.endsWith(".json"));
+        for (const kf of availableKeys) {
+            const fullP = path.join(ZKP_ENGINE_DIR, kf);
+            if (!candidates.some(c => c.path === fullP)) {
+                candidates.push({ name: kf, path: fullP, claims: VKEY_TO_CLAIMS[kf] || [] });
+            }
+        }
+
         console.log(`[Verify] Starting in-process verification run: ${verifyId}`);
-        console.log(`[Verify] Using verification key: ${keyFilename}`);
-        console.log(`[Verify] Claims: ${JSON.stringify(claims)}`);
+        console.log(`[Verify] Trying ${candidates.length} candidate verification keys...`);
 
-        // ── In-process verification using snarkjs Node.js API ───
-        const isValid = await snarkjs.groth16.verify(vkey, publicSignals, proof);
+        let verifiedMatch = null;
 
-        console.log(`[Verify] Result: ${isValid ? "VALID" : "INVALID"}`);
+        for (const cand of candidates) {
+            try {
+                const vkey = JSON.parse(fs.readFileSync(cand.path, "utf-8"));
+                const isValid = await snarkjs.groth16.verify(vkey, publicSignals, proof);
+                if (isValid) {
+                    verifiedMatch = cand;
+                    console.log(`[Verify] ✓ Valid proof matched with key: ${cand.name}`);
+                    break;
+                }
+            } catch (err) {
+                // Ignore curve math dimension mismatch errors for non-matching keys
+            }
+        }
 
-        if (isValid) {
+        if (verifiedMatch) {
+            const claims = verifiedMatch.claims.length > 0 ? verifiedMatch.claims : (VKEY_TO_CLAIMS[verifiedMatch.name] || []);
             return res.status(200).json({
                 success: true,
                 verified: true,
@@ -173,6 +187,7 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
                 message: "Proof verified successfully"
             });
         } else {
+            console.log(`[Verify] ✗ Verification failed — no candidate key validated this proof`);
             return res.status(200).json({
                 success: true,
                 verified: false,
