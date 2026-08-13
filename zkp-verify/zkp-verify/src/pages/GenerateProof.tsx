@@ -170,6 +170,9 @@ export default function GenerateProof() {
   const [generateResult, setGenerateResult] = useState<{ success: boolean; message: string; fileId: string; claims: string[] } | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
+  // Download state
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
+
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
     setUploadResult(null);
@@ -321,6 +324,42 @@ export default function GenerateProof() {
       setGenerateError(`Network error: ${message}`);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleDownloadFile = async (filename: string) => {
+    setDownloadingFile(filename);
+
+    try {
+      const url = `${API_BASE_URL}/api/download/${filename}`;
+      console.log(`[GenerateProof] Downloading file from: ${url}`);
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        let errorMsg = `Download failed (HTTP ${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData.message) errorMsg = errData.message;
+        } catch {}
+        alert(errorMsg);
+        return;
+      }
+
+      const blob = await res.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Download failed';
+      console.error('[GenerateProof] Download error:', err);
+      alert(message);
+    } finally {
+      setDownloadingFile(null);
     }
   };
 
@@ -675,19 +714,17 @@ export default function GenerateProof() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={generateResult === null}
-                onClick={() => {
-                  let url = '';
-                  if (file === 'proof.json') {
-                    url = `${API_BASE_URL}/api/download/proof`;
-                  } else if (file === 'public.json') {
-                    url = `${API_BASE_URL}/api/download/public`;
-                  }
-                  console.log("Downloading:", url);
-                  window.open(url, '_blank');
-                }}
+                disabled={generateResult === null || downloadingFile === file}
+                onClick={() => handleDownloadFile(file)}
               >
-                Download
+                {downloadingFile === file ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Downloading…
+                  </>
+                ) : (
+                  'Download'
+                )}
               </Button>
             </div>
           ))}
