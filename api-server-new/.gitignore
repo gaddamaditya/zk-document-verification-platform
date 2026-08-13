@@ -1,2 +1,5 @@
 node_modules/
 uploads/
+temp-verification/
+eng.traineddata
+test-e2e.js

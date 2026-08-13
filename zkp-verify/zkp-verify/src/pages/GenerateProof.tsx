@@ -23,12 +23,23 @@ const claimOptions = [
   { id: 'name_verification', label: 'Name Verification' },
   { id: 'age_verification', label: 'Age ≥ 18 Verification' },
   { id: 'gender_verification', label: 'Gender Verification' },
-  { id: 'dob_verification', label: 'Date of Birth Verification' },
   { id: 'result_verification', label: 'Academic Result Verification' },
-  { id: 'cgpa_verification', label: 'CGPA Verification' },
-  { id: 'degree_verification', label: 'Degree Verification' },
-  { id: 'certificate_authenticity', label: 'Certificate Authenticity' },
+  { id: 'cgpa_verification', label: 'Grade Verification' },
+  { id: 'degree_verification', label: 'Student Name Verification' },
+  { id: 'certificate_authenticity', label: 'Grand Total Verification' },
 ];
+
+/** Map ZKP engine claim names back to human-readable labels */
+const ZKP_CLAIM_LABELS: Record<string, string> = {
+  NAME: 'Name Verification',
+  AGE_18_PLUS: 'Age ≥ 18 Verification',
+  GENDER: 'Gender Verification',
+  STUDENT_NAME: 'Student Name Verification',
+  RESULT: 'Academic Result Verification',
+  GRADE: 'Grade Verification',
+  GRAND_TOTAL: 'Grand Total Verification',
+  MULTI_ATTRIBUTE: 'Multi-Attribute Verification',
+};
 
 function Panel({
   title,
@@ -314,7 +325,7 @@ export default function GenerateProof() {
       const data = await res.json();
 
       if (!res.ok) {
-        setGenerateError(data.message || `Request failed (HTTP ${res.status})`);
+        setGenerateError(data.error || data.message || `Request failed (HTTP ${res.status})`);
         return;
       }
 
@@ -674,11 +685,11 @@ export default function GenerateProof() {
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {generateResult.claims.map((claimId) => {
-                const claim = claimOptions.find((c) => c.id === claimId);
+                const label = ZKP_CLAIM_LABELS[claimId] ?? claimOptions.find((c) => c.id === claimId)?.label ?? claimId;
                 return (
                   <div key={claimId} className="flex items-center gap-2 text-sm text-emerald-100">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                    <span>{claim?.label ?? claimId}</span>
+                    <span>{label}</span>
                   </div>
                 );
               })}

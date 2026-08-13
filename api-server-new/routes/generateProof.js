@@ -114,29 +114,33 @@ router.post("/", async (req, res) => {
         console.log("[GenerateProof] Frontend claims:", claims);
         console.log("[GenerateProof] Normalized claims:", normalizedClaims);
 
-        // ── Only single-claim supported for now ─────────────────
-        if (normalizedClaims.length !== 1) {
+        // ── Determine circuit (single or multi-attribute) ────────
+        const circuitName = getCircuitName(normalizedClaims);
+        if (!circuitName) {
             return res.status(400).json({
                 success: false,
-                error: "Only single-claim proof generation is supported at this time.",
+                error: `Unsupported claim combination: ${normalizedClaims.join(", ")}. ` +
+                       `Single claims or the combination NAME+AGE_18_PLUS+GENDER are supported.`,
             });
         }
 
-        const selectedClaim = normalizedClaims[0];
+        // Determine whether this is single-claim or multi-attribute
+        const isMultiAttribute = normalizedClaims.length > 1;
+        // The pipeline claim key used for input generation, witness, proof, verify
+        const pipelineClaim = isMultiAttribute ? "MULTI_ATTRIBUTE" : normalizedClaims[0];
 
-        // ── Validate claim has circuit config ───────────────────
-        const circuitConfig = circuits[selectedClaim];
+        // Validate the pipeline claim has a circuit config entry
+        const circuitConfig = circuits[pipelineClaim];
         if (!circuitConfig) {
             return res.status(400).json({
                 success: false,
-                error: `Unsupported claim: ${selectedClaim}`,
+                error: `Unsupported claim: ${pipelineClaim}`,
             });
         }
 
-        const circuitName = circuitConfig.circuit;
-
-        console.log(`[GenerateProof] Selected claim: ${selectedClaim}`);
+        console.log(`[GenerateProof] Pipeline claim: ${pipelineClaim}`);
         console.log(`[GenerateProof] Circuit: ${circuitName}`);
+        console.log(`[GenerateProof] Multi-attribute: ${isMultiAttribute}`);
 
         // ── Locate uploaded file ────────────────────────────────
         const uploadedFilePath = findUploadedFile(fileId);
@@ -193,20 +197,22 @@ router.post("/", async (req, res) => {
         const attributes = extractAttributes(documentType, extractedText);
         console.log("[GenerateProof] ✓ Attributes extracted");
 
-        // ── Step 4: Validate claim is available ─────────────────
+        // ── Step 4: Validate claims are available ───────────────
         console.log("[GenerateProof] Step 4: Validating claims...");
         const availableClaims = generateClaims(attributes);
-        if (!availableClaims.includes(selectedClaim)) {
-            return res.status(400).json({
-                success: false,
-                error: `Claim "${selectedClaim}" is not available for this document. Available: ${availableClaims.join(", ")}`,
-            });
+        for (const claim of normalizedClaims) {
+            if (!availableClaims.includes(claim)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Claim "${claim}" is not available for this document. Available: ${availableClaims.join(", ")}`,
+                });
+            }
         }
-        console.log(`[GenerateProof] ✓ Claim "${selectedClaim}" is valid`);
+        console.log(`[GenerateProof] ✓ All claims valid: ${normalizedClaims.join(", ")}`);
 
         // ── Step 5: Generate input ──────────────────────────────
         console.log("[GenerateProof] Step 5: Generating circuit input...");
-        await generateInput(selectedClaim, attributes);
+        await generateInput(pipelineClaim, attributes);
         console.log("[GenerateProof] ✓ Input generated");
 
         // ── Step 6: Build circuit (skip if pre-built) ───────────
@@ -216,17 +222,17 @@ router.post("/", async (req, res) => {
 
         // ── Step 7: Generate witness ────────────────────────────
         console.log("[GenerateProof] Step 7: Generating witness...");
-        generateWitness(selectedClaim);
+        generateWitness(pipelineClaim);
         console.log("[GenerateProof] ✓ Witness generated");
 
         // ── Step 8: Generate proof ──────────────────────────────
         console.log("[GenerateProof] Step 8: Generating Groth16 proof...");
-        generateProofZKP(selectedClaim);
+        generateProofZKP(pipelineClaim);
         console.log("[GenerateProof] ✓ Proof generated");
 
         // ── Step 9: Verify proof ────────────────────────────────
         console.log("[GenerateProof] Step 9: Verifying proof...");
-        verifyProofZKP(selectedClaim);
+        verifyProofZKP(pipelineClaim);
         console.log("[GenerateProof] ✓ Proof verified");
 
         // ── Verify output files exist ───────────────────────────

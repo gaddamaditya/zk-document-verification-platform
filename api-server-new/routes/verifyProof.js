@@ -2,9 +2,9 @@
  * Verify Proof route.
  * POST /api/verify-proof
  *
- * Receives multipart/form-data containing proof, public, and verificationKey.
+ * Receives multipart/form-data containing proof and public.
  * Saves them to api-server-new/temp-verification/verify-<uuid>/,
- * runs `snarkjs groth16 verify` inside WSL, and returns verification status.
+ * uses the snarkjs Node.js API to verify in-process, and returns verification status.
  */
 
 const express = require("express");
@@ -12,7 +12,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
-const { spawn } = require("child_process");
+const snarkjs = require("snarkjs");
 
 const router = express.Router();
 
@@ -65,41 +65,6 @@ const attachVerifyId = (req, res, next) => {
     next();
 };
 
-// ─── Helper: run verification natively ─────────────────────────
-function runVerification(runDir) {
-    return new Promise((resolve, reject) => {
-        console.log(`[Verify] Executing: snarkjs groth16 verify verification_key.json public.json proof.json in ${runDir}`);
-
-        const child = spawn("snarkjs", ["groth16", "verify", "verification_key.json", "public.json", "proof.json"], {
-            cwd: runDir,
-            shell: true,
-            env: {
-                ...process.env,
-                PATH: `${path.resolve(ZKP_ENGINE_DIR, "node_modules", ".bin")}${path.delimiter}${process.env.PATH || ""}`
-            }
-        });
-
-        let stdout = "";
-        let stderr = "";
-
-        child.stdout.on("data", (data) => {
-            stdout += data.toString();
-        });
-
-        child.stderr.on("data", (data) => {
-            stderr += data.toString();
-        });
-
-        child.on("close", (code) => {
-            resolve({ code, stdout, stderr });
-        });
-
-        child.on("error", (err) => {
-            reject(new Error(`Failed to start verification: ${err.message}`));
-        });
-    });
-}
-
 // POST endpoint for verifying proofs
 router.post("/", attachVerifyId, uploadFields, async (req, res) => {
     if (!global.ZKP_ENGINE_AVAILABLE) {
@@ -123,7 +88,6 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
 
         const proofPath = path.join(runDir, "proof.json");
         const publicPath = path.join(runDir, "public.json");
-        const vkeyPath = path.join(runDir, "verification_key.json");
 
         if (!fs.existsSync(proofPath) || !fs.existsSync(publicPath)) {
             return res.status(400).json({
@@ -133,7 +97,6 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
         }
 
         // Read claims metadata saved during proof generation
-        // ZKP_ENGINE_DIR defined globally at the top
         const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
         let claims = [];
         try {
@@ -188,19 +151,21 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
             });
         }
 
-        // Copy source verification key to vkeyPath in runDir
-        fs.copyFileSync(sourceVkeyPath, vkeyPath);
+        // Read JSON files for in-process verification
+        const vkey = JSON.parse(fs.readFileSync(sourceVkeyPath, "utf-8"));
+        const proof = JSON.parse(fs.readFileSync(proofPath, "utf-8"));
+        const publicSignals = JSON.parse(fs.readFileSync(publicPath, "utf-8"));
 
-        console.log(`[Verify] Starting verification run: ${verifyId}`);
-        const result = await runVerification(runDir);
+        console.log(`[Verify] Starting in-process verification run: ${verifyId}`);
+        console.log(`[Verify] Using verification key: ${keyFilename}`);
+        console.log(`[Verify] Claims: ${JSON.stringify(claims)}`);
 
-        console.log(`[Verify] Exit code: ${result.code}`);
-        console.log(`[Verify] Stdout: ${result.stdout.trim()}`);
-        if (result.stderr) {
-            console.error(`[Verify Stderr] ${result.stderr.trim()}`);
-        }
+        // ── In-process verification using snarkjs Node.js API ───
+        const isValid = await snarkjs.groth16.verify(vkey, publicSignals, proof);
 
-        if (result.stdout.includes("OK!")) {
+        console.log(`[Verify] Result: ${isValid ? "VALID" : "INVALID"}`);
+
+        if (isValid) {
             return res.status(200).json({
                 success: true,
                 verified: true,
