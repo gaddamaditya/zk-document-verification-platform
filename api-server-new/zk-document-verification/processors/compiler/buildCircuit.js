@@ -2,30 +2,56 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-// ZKP_ROOT is imported to resolve all paths absolutely.
-// However, we avoid importing from circuits.js here to prevent
-// circular dependency issues if circuits.js ever imports compiler.
-// Instead, derive ZKP_ROOT from __dirname.
+// ZKP_ROOT is derived from __dirname so it works regardless of process.cwd().
 const ZKP_ROOT = path.resolve(__dirname, "..", "..");
 
 function buildCircuit(circuitName) {
 
-    const circuitFile = path.join(ZKP_ROOT, "circuits", `${circuitName}.circom`);
-    const r1csFile = path.join(ZKP_ROOT, `${circuitName}.r1cs`);
-    const wasmDirectory = path.join(ZKP_ROOT, `${circuitName}_js`);
-    const zkeyInitial = path.join(ZKP_ROOT, `${circuitName}_0000.zkey`);
+    const wasmFile = path.join(ZKP_ROOT, `${circuitName}_js`, `${circuitName}.wasm`);
+    const witnessScript = path.join(ZKP_ROOT, `${circuitName}_js`, "generate_witness.js");
     const zkeyFinal = path.join(ZKP_ROOT, `${circuitName}_final.zkey`);
     const verificationKey = path.join(ZKP_ROOT, `verification_key_${circuitName}.json`);
-    const ptauFile = path.join(ZKP_ROOT, "pot12_final.ptau");
 
+    // ─── Check runtime requirement ─────────────────────────────
+    // Production proof generation only requires the WASM file,
+    // generate_witness.js script, final zkey, and verification key.
+    // The .r1cs file is NOT required at runtime.
     if (
-        fs.existsSync(r1csFile) &&
-        fs.existsSync(wasmDirectory) &&
+        fs.existsSync(wasmFile) &&
+        fs.existsSync(witnessScript) &&
         fs.existsSync(zkeyFinal) &&
         fs.existsSync(verificationKey)
     ) {
-        console.log(`\n✓ Circuit ${circuitName} already compiled and built. Skipping build step.\n`);
+        console.log(`\n✓ Circuit ${circuitName} runtime artifacts exist. Skipping compilation step.\n`);
         return;
+    }
+
+    // ─── Fallback compilation (Local Dev only) ─────────────
+    const circuitFile = path.join(ZKP_ROOT, "circuits", `${circuitName}.circom`);
+    const r1csFile = path.join(ZKP_ROOT, `${circuitName}.r1cs`);
+    const zkeyInitial = path.join(ZKP_ROOT, `${circuitName}_0000.zkey`);
+    const ptauFile = path.join(ZKP_ROOT, "pot12_final.ptau");
+
+    // Check if circom compiler binary exists in system PATH
+    let hasCircom = false;
+    try {
+        execSync("circom --version", { stdio: "ignore" });
+        hasCircom = true;
+    } catch {
+        hasCircom = false;
+    }
+
+    if (!hasCircom) {
+        const missing = [];
+        if (!fs.existsSync(wasmFile)) missing.push(`${circuitName}_js/${circuitName}.wasm`);
+        if (!fs.existsSync(witnessScript)) missing.push(`${circuitName}_js/generate_witness.js`);
+        if (!fs.existsSync(zkeyFinal)) missing.push(`${circuitName}_final.zkey`);
+        if (!fs.existsSync(verificationKey)) missing.push(`verification_key_${circuitName}.json`);
+
+        throw new Error(
+            `Required runtime artifacts for circuit "${circuitName}" are missing (${missing.join(", ")}), ` +
+            `and circom compiler is not available in this environment.`
+        );
     }
 
     if (!fs.existsSync(circuitFile)) {
@@ -39,7 +65,7 @@ function buildCircuit(circuitName) {
     console.log("\n========== Circuit Build ==========\n");
 
     // Step 1: Compile Circuit
-    if (!fs.existsSync(r1csFile) || !fs.existsSync(wasmDirectory)) {
+    if (!fs.existsSync(r1csFile) || !fs.existsSync(path.join(ZKP_ROOT, `${circuitName}_js`))) {
 
         console.log("Compiling Circuit...\n");
 
