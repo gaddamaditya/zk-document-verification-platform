@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import QRCode from 'qrcode';
 import {
   AlertCircle,
   CheckCircle2,
+  Copy,
   Download,
   FileText,
   FileUp,
   Loader2,
+  QrCode as QrIcon,
   ShieldCheck,
   Upload,
   X,
@@ -175,11 +178,16 @@ export default function GenerateProof() {
 
   // Generate proof state
   const [generating, setGenerating] = useState(false);
-  const [generateResult, setGenerateResult] = useState<{ success: boolean; message: string; fileId: string; claims: string[] } | null>(null);
+  const [generateResult, setGenerateResult] = useState<{ success: boolean; message: string; proofId?: string; fileId: string; claims: string[] } | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
   // Download state
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
+
+  // QR Modal state
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
@@ -207,6 +215,7 @@ export default function GenerateProof() {
     setOcrLoading(false);
     setOcrError(null);
     setSelectedClaims([]);
+    setGenerateResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -336,6 +345,26 @@ export default function GenerateProof() {
     }
   };
 
+  const openQrModal = async () => {
+    if (!generateResult?.proofId) return;
+    const verifyUrl = `${window.location.origin}/verify?proof=${generateResult.proofId}`;
+    try {
+      const dataUrl = await QRCode.toDataURL(verifyUrl, { width: 280, margin: 2, color: { dark: '#0F172A', light: '#FFFFFF' } });
+      setQrDataUrl(dataUrl);
+      setShowQrModal(true);
+    } catch (err) {
+      console.error('[QR] Failed to generate QR:', err);
+    }
+  };
+
+  const copyVerifyLink = () => {
+    if (!generateResult?.proofId) return;
+    const verifyUrl = `${window.location.origin}/verify?proof=${generateResult.proofId}`;
+    navigator.clipboard.writeText(verifyUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   const handleDownloadFile = async (filename: string) => {
     setDownloadingFile(filename);
 
@@ -423,7 +452,7 @@ export default function GenerateProof() {
         <div className="hidden h-px w-6 bg-border sm:block" />
         <StepIndicator step={4} label="Generate" active={currentStep === 4} completed={proofGenerated} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={5} label="Download" active={currentStep === 5} completed={false} />
+        <StepIndicator step={5} label="Download / Share" active={currentStep === 5} completed={false} />
       </motion.div>
 
       {/* ── Step 1: Upload Document ─────────────────────────────── */}
@@ -724,13 +753,22 @@ export default function GenerateProof() {
 
         {generateResult && (
           <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-            <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-              Proof Generated Successfully
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                Proof Generated Successfully
+              </div>
+              {generateResult.proofId && (
+                <span className="rounded-md border border-emerald-500/30 bg-white/60 dark:bg-slate-900/60 px-2.5 py-1 text-xs font-mono font-bold text-emerald-800 dark:text-emerald-200">
+                  Proof ID: {generateResult.proofId}
+                </span>
+              )}
             </div>
+
             <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-              Your claim has been converted into a zero-knowledge proof without revealing your original document.
+              Your claims have been converted into a zero-knowledge proof without revealing your original document.
             </p>
+
             <div className="mt-4 border-t border-emerald-500/20 pt-3">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-2">
                 Verified Claims:
@@ -746,6 +784,29 @@ export default function GenerateProof() {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-emerald-500/20 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDownloadFile('proof.json')}
+                className="bg-white/80 dark:bg-slate-900/80 hover:bg-white"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download Proof
+              </Button>
+
+              {generateResult.proofId && (
+                <Button
+                  size="sm"
+                  onClick={openQrModal}
+                  className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
+                >
+                  <QrIcon className="h-3.5 w-3.5" />
+                  Show QR Code
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -818,9 +879,70 @@ export default function GenerateProof() {
 
         <div className="mt-4 rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6">
           <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
-          Share these proof files with the verifier.
+          Share these proof files with the verifier or scan the QR code to verify online.
         </div>
       </Panel>
+
+      {/* ── QR CODE MODAL ────────────────────────────────────────── */}
+      {showQrModal && generateResult?.proofId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <QrIcon className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                <h3 className="text-base font-bold text-foreground">Share Proof</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Scan this QR code to verify the proof directly in the browser.
+            </p>
+
+            {qrDataUrl && (
+              <div className="flex justify-center rounded-xl border border-border bg-white p-4">
+                <img src={qrDataUrl} alt="ZKP Verification QR Code" className="h-52 w-52" />
+              </div>
+            )}
+
+            <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
+              <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Proof ID</p>
+              <p className="mt-0.5 font-mono text-sm font-bold text-teal-700 dark:text-teal-300">
+                {generateResult.proofId}
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyVerifyLink}
+                className="w-full justify-center"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                {copiedLink ? 'Copied Link!' : 'Copy Link'}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setShowQrModal(false)}
+                className="w-full justify-center bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+              >
+                Close
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

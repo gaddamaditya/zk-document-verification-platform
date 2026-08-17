@@ -10,6 +10,7 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const { saveProofRecord } = require("../services/proofStore");
 
 const router = express.Router();
 
@@ -217,15 +218,28 @@ router.post("/", async (req, res) => {
             JSON.stringify({ claims: normalizedClaims }, null, 2)
         );
 
-        console.log("[GenerateProof] ✓ Output files copied to proofs/");
+        // ── Step 10: Store proof record for QR sharing ──────────
+        const proofContent = JSON.parse(fs.readFileSync(proofFile, "utf-8"));
+        const publicSignalsContent = JSON.parse(fs.readFileSync(publicFile, "utf-8"));
+
+        const proofRecord = saveProofRecord({
+            claims: normalizedClaims,
+            documentType,
+            proof: proofContent,
+            publicSignals: publicSignalsContent,
+        });
+
+        console.log(`[GenerateProof] ✓ Saved proof record: ${proofRecord.proofId}`);
         console.log("[GenerateProof] ✓ Pipeline completed successfully");
 
         // ── Return success ──────────────────────────────────────
         return res.status(200).json({
             success: true,
             message: "Proof generated successfully",
+            proofId: proofRecord.proofId,
             fileId: fileId,
             claims: normalizedClaims,
+            documentType: documentType,
             generatedFiles: [
                 "proof.json",
                 "public.json",

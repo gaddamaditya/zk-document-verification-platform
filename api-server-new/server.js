@@ -37,6 +37,7 @@ const optionalRoutes = [
   { path: '/api/download',       module: './routes/download' },
   { path: '/api/verify-proof',   module: './routes/verifyProof' },
   { path: '/api/ocr',            module: './routes/ocr' },
+  { path: '/api/proof',          module: './routes/getProof' },
 ];
 
 for (const route of optionalRoutes) {

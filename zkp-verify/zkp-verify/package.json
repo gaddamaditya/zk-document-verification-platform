@@ -32,5 +32,9 @@
     "tw-animate-css": "latest",
     "typescript": "latest",
     "vite": "latest"
+  },
+  "dependencies": {
+    "@types/qrcode": "^1.5.6",
+    "qrcode": "^1.5.4"
   }
 }

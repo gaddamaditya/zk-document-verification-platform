@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react';
-
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
   CheckCircle2,
+  Clock,
   FileJson,
   FileUp,
   Loader2,
+  QrCode,
   RotateCcw,
   ShieldCheck,
   ShieldX,
@@ -18,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/config';
 
-type VerificationState = 'idle' | 'verifying' | 'valid' | 'invalid' | 'error';
+type VerificationState = 'idle' | 'verifying' | 'valid' | 'invalid' | 'expired' | 'error';
 
 /** Map ZKP engine claim names to human-readable labels */
 const CLAIM_LABELS: Record<string, string> = {
@@ -30,6 +31,13 @@ const CLAIM_LABELS: Record<string, string> = {
   RESULT: 'Result Verification',
   GRADE: 'Grade Verification',
   GRAND_TOTAL: 'Grand Total Verification',
+  PERCENTAGE: 'Percentage Verification',
+  CGPA: 'CGPA Verification',
+  DEGREE: 'Degree / Qualification Verification',
+  INSTITUTION: 'Institution Verification',
+  ROLL_NUMBER: 'Roll Number Verification',
+  DOCUMENT_NUMBER: 'Document Number Verification',
+  ADDRESS: 'Address Verification',
 };
 
 interface FileSlot {
@@ -171,13 +179,74 @@ export default function VerifyProof() {
   });
   const [verificationState, setVerificationState] = useState<VerificationState>('idle');
   const [verifiedClaims, setVerifiedClaims] = useState<string[]>([]);
+  const [qrProofId, setQrProofId] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
 
   const allFilesSelected = files.proof && files.public;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const proofParam = params.get('proof');
+    if (proofParam) {
+      loadProofById(proofParam);
+    }
+  }, []);
+
+  const loadProofById = async (proofId: string) => {
+    setVerificationState('verifying');
+    setQrProofId(proofId);
+    setQrError(null);
+
+    try {
+      const url = `${API_BASE_URL}/api/proof/${proofId}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        if (data.expired) {
+          setQrError('PROOF EXPIRED');
+          setVerificationState('expired');
+        } else {
+          setQrError(data.message || 'Proof not found');
+          setVerificationState('error');
+        }
+        return;
+      }
+
+      const proofFile = new File([JSON.stringify(data.proof)], 'proof.json', { type: 'application/json' });
+      const publicFile = new File([JSON.stringify(data.publicSignals)], 'public.json', { type: 'application/json' });
+
+      setFiles({ proof: proofFile, public: publicFile });
+
+      const formData = new FormData();
+      formData.append('proof', proofFile);
+      formData.append('public', publicFile);
+
+      const verifyRes = await fetch(`${API_BASE_URL}/api/verify-proof`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (verifyRes.ok && verifyData.verified) {
+        setVerifiedClaims(verifyData.claims || data.claims || []);
+        setVerificationState('valid');
+      } else {
+        setVerificationState('invalid');
+      }
+    } catch (err) {
+      console.error(err);
+      setVerificationState('error');
+      setQrError('Failed to load proof by ID');
+    }
+  };
 
   const setFile = (field: string, file: File) => {
     setFiles((prev) => ({ ...prev, [field]: file }));
     setVerificationState('idle');
     setVerifiedClaims([]);
+    setQrProofId(null);
   };
 
   const clearFile = (field: string) => {
@@ -190,6 +259,8 @@ export default function VerifyProof() {
     setFiles({ proof: null, public: null });
     setVerificationState('idle');
     setVerifiedClaims([]);
+    setQrProofId(null);
+    setQrError(null);
   };
 
   const handleVerify = async () => {
@@ -202,7 +273,6 @@ export default function VerifyProof() {
       formData.append('public', files.public);
 
       const url = `${API_BASE_URL}/api/verify-proof`;
-      console.log(`[VerifyProof] Verify Proof URL: ${url}`);
       const res = await fetch(url, {
         method: 'POST',
         body: formData,
@@ -255,7 +325,7 @@ export default function VerifyProof() {
           transition={{ delay: 0.1 }}
           className="mt-2 text-base leading-7 text-muted-foreground"
         >
-          Verify claims without accessing the original document. Upload proof files received from a prover.
+          Verify claims without accessing the original document. Scan a QR link or upload proof files manually.
         </motion.p>
       </section>
 
@@ -263,7 +333,7 @@ export default function VerifyProof() {
       <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs">
         <div className="flex items-center gap-2">
           <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', allFilesSelected ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground')}>1</span>
-          <span className="text-sm font-medium text-foreground">Upload Proof</span>
+          <span className="text-sm font-medium text-foreground">Upload / Load Proof</span>
         </div>
         <div className="h-px w-6 bg-border" />
         <div className="flex items-center gap-2">
@@ -272,18 +342,31 @@ export default function VerifyProof() {
         </div>
         <div className="h-px w-6 bg-border" />
         <div className="flex items-center gap-2">
-          <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', verificationState === 'valid' || verificationState === 'invalid' ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground')}>3</span>
+          <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', verificationState === 'valid' || verificationState === 'invalid' || verificationState === 'expired' ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground')}>3</span>
           <span className="text-sm font-medium text-foreground">Result</span>
         </div>
       </div>
 
+      {/* QR Banner if loaded via QR link */}
+      {qrProofId && (
+        <div className="flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-xs text-blue-800 dark:text-blue-200">
+          <div className="flex items-center gap-2">
+            <QrCode className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span>Loaded via QR / Proof Link: <strong className="font-mono">{qrProofId}</strong></span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={reset} className="h-6 px-2 text-xs">
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* ── Section 1: Upload Proof Package ─────────────────────────── */}
       <Panel
         title="Upload Proof Package"
-        description="Upload the proof and public files provided by the prover."
+        description="Select proof.json and public.json or scan a QR link."
         icon={FileUp}
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
           {fileSlots.map((slot) => (
             <FileUploadSlot
               key={slot.fieldName}
@@ -295,116 +378,118 @@ export default function VerifyProof() {
           ))}
         </div>
 
-        {!allFilesSelected && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Upload both proof.json and public.json files to enable verification.
-          </p>
-        )}
-      </Panel>
-
-      {/* ── Section 2: Verify Proof ────────────────────────────────── */}
-      <Panel
-        title="Verify"
-        description="Run zero-knowledge cryptographic verification."
-        icon={ShieldCheck}
-      >
-        <div className="flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Button
             disabled={!allFilesSelected || verificationState === 'verifying'}
             onClick={handleVerify}
-            className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             {verificationState === 'verifying' ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Verifying…
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verifying Proof…
               </>
             ) : (
-              <>
-                <ShieldCheck className="h-4 w-4 mr-2" />
-                Verify Proof
-              </>
+              'Verify Proof'
             )}
           </Button>
-          <Button variant="outline" onClick={reset}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
+
+          {(allFilesSelected || verificationState !== 'idle') && (
+            <Button variant="outline" onClick={reset}>
+              <RotateCcw className="h-3.5 w-3.5 mr-1" />
+              Reset
+            </Button>
+          )}
         </div>
       </Panel>
 
-      {/* ── Section 3: Verification Result ─────────────────────────── */}
-      <Panel
-        title="Verification Result"
-        description="The result of the proof verification will appear here."
-        icon={verificationState === 'valid' ? CheckCircle2 : verificationState === 'invalid' ? ShieldX : ShieldCheck}
-      >
-        {verificationState === 'valid' ? (
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-5 w-5" />
+      {/* ── Section 2: Verification Result ──────────────────────────── */}
+      {verificationState !== 'idle' && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Panel
+            title="Verification Result"
+            description="Cryptographic proof evaluation results."
+            icon={ShieldCheck}
+          >
+            {verificationState === 'verifying' && (
+              <div className="flex items-center gap-3 py-8 text-sm text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                <span>Evaluating Groth16 zero-knowledge proof against public inputs…</span>
               </div>
-              <div>
-                <h4 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">✓ Proof Verified</h4>
-                <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-                  Cryptographic verification successful.
-                </p>
-              </div>
-            </div>
+            )}
 
-            {verifiedClaims.length > 0 && (
-              <div className="mt-4 border-t border-emerald-500/20 pt-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                  Verified Claims
+            {verificationState === 'expired' && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center space-y-2">
+                <Clock className="mx-auto h-8 w-8 text-amber-500" />
+                <h3 className="text-lg font-bold text-amber-900 dark:text-amber-200">PROOF EXPIRED</h3>
+                <p className="text-xs text-amber-800 dark:text-amber-300">
+                  This proof link ({qrProofId}) has expired and can no longer be verified.
                 </p>
-                <div className="space-y-2">
-                  {verifiedClaims.map((claim) => (
-                    <div
-                      key={claim}
-                      className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-card p-3"
-                    >
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                      <span className="text-sm font-semibold text-foreground">
-                        {CLAIM_LABELS[claim] ?? claim}
-                      </span>
+              </div>
+            )}
+
+            {verificationState === 'valid' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">VALID PROOF</h4>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                      The cryptographic zero-knowledge proof was successfully verified.
+                    </p>
+                  </div>
+                </div>
+
+                {verifiedClaims.length > 0 && (
+                  <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Verified Claims:
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {verifiedClaims.map((claim) => (
+                        <div key={claim} className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <span>{CLAIM_LABELS[claim] ?? claim}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {verificationState === 'invalid' && (
+              <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-600 dark:text-red-400">
+                  <ShieldX className="h-6 w-6" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-red-900 dark:text-red-100">INVALID PROOF</h4>
+                  <p className="text-xs text-red-700 dark:text-red-300">
+                    The zero-knowledge proof mathematical verification failed.
+                  </p>
                 </div>
               </div>
             )}
-          </div>
-        ) : verificationState === 'invalid' ? (
-          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/20 text-red-600 dark:text-red-400">
-                <ShieldX className="h-5 w-5" />
+
+            {verificationState === 'error' && (
+              <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+                <AlertCircle className="mt-0.5 h-5 w-5 text-red-500 shrink-0" />
+                <div>
+                  <h4 className="text-sm font-bold text-red-900 dark:text-red-100">Verification Error</h4>
+                  <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">{qrError || 'Could not complete verification process.'}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-lg font-bold text-red-800 dark:text-red-200">✕ Proof Verification Failed</h4>
-                <p className="mt-1 text-xs text-red-700 dark:text-red-300">
-                  Unable to verify this proof package. The proof parameters do not match or are invalid.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : verificationState === 'error' ? (
-          <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-700 dark:text-red-300">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>An error occurred during verification. Please try again.</span>
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border bg-muted/30 px-5 py-8 text-center">
-            <ShieldCheck className="mx-auto h-8 w-8 text-muted-foreground opacity-60" />
-            <p className="mt-2 text-sm font-semibold text-foreground">
-              Awaiting verification
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Upload proof files and click Verify Proof to see the result.
-            </p>
-          </div>
-        )}
-      </Panel>
+            )}
+          </Panel>
+        </motion.div>
+      )}
     </div>
   );
 }
