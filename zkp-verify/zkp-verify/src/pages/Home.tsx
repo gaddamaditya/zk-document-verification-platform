@@ -161,8 +161,8 @@ export default function Home() {
       <section className="space-y-10">
         <SectionHeading
           eyebrow="Get Started"
-          title="Try the prover and verifier workflows"
-          description="Generate a proof from your document or verify a proof you've received."
+          title="Try the Prover Workflow"
+          description="Generate a proof from your document without revealing sensitive information."
           centered
         />
 

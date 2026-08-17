@@ -1,7 +1,7 @@
 export const navigationLinks = [
   { to: '/', label: 'Home' },
   { to: '/generate-proof', label: 'Generate Proof' },
-  { to: '/verify-proof', label: 'Verify Proof' },
+  { to: '/how-zkp-works', label: 'How It Works' },
   { to: '/contact', label: 'Contact' },
 ];
 

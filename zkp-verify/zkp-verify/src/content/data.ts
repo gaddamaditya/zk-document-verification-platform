@@ -41,13 +41,8 @@ export const homeContent = {
       link: { href: "/generate-proof", label: "Start Proving" }
     },
     {
-      title: "Verify Proof",
-      description: "Act as a Verifier. Upload a proof and public inputs to cryptographically verify a claim.",
-      link: { href: "/verify-proof", label: "Start Verifying" }
-    },
-    {
-      title: "Understand the Math",
-      description: "Dive into the mechanics of zk-SNARKs, polynomial commitments, and circuit design.",
+      title: "Understand the Technology",
+      description: "Learn how zero-knowledge proofs enable privacy-preserving document verification.",
       link: { href: "/how-zkp-works", label: "Read Documentation" }
     }
   ]

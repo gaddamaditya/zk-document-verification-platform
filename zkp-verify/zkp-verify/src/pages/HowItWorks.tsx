@@ -79,26 +79,19 @@ export default function HowItWorks() {
           </h2>
           <div className="mt-5 space-y-5">
             <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Prover</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Prover Journey</p>
               <ol className="mt-3 space-y-2 text-sm text-cyan-50">
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">1.</span> Upload a document</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">2.</span> Select claims to prove</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">3.</span> Generate a cryptographic proof</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">4.</span> Download proof files and share with verifier</li>
+                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">1.</span> Upload your document</li>
+                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">2.</span> Automatic OCR detection</li>
+                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">3.</span> Select claims to prove</li>
+                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">4.</span> Generate & download proof package</li>
               </ol>
-            </div>
-            <div className="flex justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
-                <ArrowRight className="h-4 w-4 rotate-90" />
-              </div>
             </div>
             <div className="rounded-xl border border-purple-400/20 bg-purple-400/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">Verifier</p>
-              <ol className="mt-3 space-y-2 text-sm text-purple-50">
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-purple-200">1.</span> Upload proof files</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-purple-200">2.</span> Click Verify Proof</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-purple-200">3.</span> See Valid or Invalid result</li>
-              </ol>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">Privacy Guarantee</p>
+              <p className="mt-2 text-sm leading-6 text-purple-100">
+                Your original document stays private on your device. Only compact mathematical proofs are generated for selective disclosure.
+              </p>
             </div>
           </div>
         </motion.div>
@@ -238,11 +231,10 @@ export default function HowItWorks() {
       {/* ── CTA banner ───────────────────────────────────────────── */}
       <section className="flex flex-col gap-4 rounded-[1.75rem] border border-cyan-400/20 bg-cyan-400/10 px-6 py-8 text-sm leading-7 text-cyan-50 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
         <p>
-          Ready to try it out? Use the prover and verifier pages to experience the workflow firsthand.
+          Ready to experience privacy-preserving document verification? Generate a proof now.
         </p>
         <div className="flex flex-wrap gap-3">
           <WorkflowActionButton href="/generate-proof" label="Generate Proof" />
-          <WorkflowActionButton href="/verify-proof" label="Verify Proof" />
         </div>
       </section>
     </div>

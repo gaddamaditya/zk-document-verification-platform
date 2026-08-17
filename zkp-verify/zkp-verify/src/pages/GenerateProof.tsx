@@ -88,28 +88,6 @@ interface OcrResult {
 
 // ── Privacy masking utilities ──────────────────────────────────
 
-/** Fields that must never be displayed */
-const HIDDEN_FIELDS = new Set([
-  'type',
-  'fatherName',
-  'motherName',
-  'aadhaarNumber',
-  'address',
-  'documentNumber',
-]);
-
-/** Fields that should show only "Detected" status, not values */
-const DETECTED_ONLY_FIELDS = new Set([
-  'name',
-  'studentName',
-  'dob',
-  'gender',
-  'result',
-  'grade',
-  'grandTotal',
-  'cgpa',
-]);
-
 /** Pretty labels for attribute keys */
 const FIELD_LABELS: Record<string, string> = {
   name: 'Name',
@@ -120,12 +98,12 @@ const FIELD_LABELS: Record<string, string> = {
   grade: 'Grade',
   grandTotal: 'Grand Total',
   cgpa: 'CGPA',
+  fatherName: 'Father Name',
+  motherName: 'Mother Name',
+  aadhaarNumber: 'Aadhaar Number',
+  address: 'Address',
+  documentNumber: 'Document Number',
 };
-
-function getDisplayValue(key: string, value: string): string {
-  if (DETECTED_ONLY_FIELDS.has(key)) return 'Detected \u2713';
-  return value;
-}
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -568,7 +546,7 @@ export default function GenerateProof() {
                   </p>
                   <div className="space-y-1.5">
                     {Object.entries(ocrData.attributes)
-                      .filter(([key, value]) => !HIDDEN_FIELDS.has(key) && value)
+                      .filter(([key, value]) => key !== 'type' && Boolean(value))
                       .map(([key]) => (
                         <div key={`summary-${key}`} className="flex items-center gap-2 text-sm text-emerald-200">
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
@@ -581,8 +559,8 @@ export default function GenerateProof() {
                 {/* Attributes grid */}
                 <div className="grid gap-3 sm:grid-cols-2">
                   {Object.entries(ocrData.attributes)
-                    .filter(([key, value]) => !HIDDEN_FIELDS.has(key) && value)
-                    .map(([key, value]) => (
+                    .filter(([key, value]) => key !== 'type' && Boolean(value))
+                    .map(([key]) => (
                       <div
                         key={key}
                         className="rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
@@ -590,8 +568,9 @@ export default function GenerateProof() {
                         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
                           {FIELD_LABELS[key] ?? key}
                         </p>
-                        <p className="mt-1 text-sm font-medium text-white">
-                          {getDisplayValue(key, value)}
+                        <p className="mt-1 text-sm font-medium text-emerald-200 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                          Detected ✓
                         </p>
                       </div>
                     ))}
@@ -643,7 +622,7 @@ export default function GenerateProof() {
         )}
       </Panel>
 
-      {/* ── Section 3: Generate Proof ──────────────────────────────── */}
+      {/* ── Section 4: Generate Proof ──────────────────────────────── */}
       <Panel
         title="Generate Proof"
         description="Generate a zero-knowledge proof for your selected claims."
@@ -658,7 +637,7 @@ export default function GenerateProof() {
             {generating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Generating…
+                Generating Proof…
               </>
             ) : (
               <>
@@ -676,23 +655,53 @@ export default function GenerateProof() {
           <p className="mt-3 text-xs text-slate-500">Select at least one claim to proceed.</p>
         )}
 
+        {/* Generating progress sequence */}
+        {generating && (
+          <div className="mt-4 rounded-[1.25rem] border border-cyan-400/20 bg-cyan-400/10 p-4 space-y-2 text-sm">
+            <div className="flex items-center gap-2 text-emerald-300 font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Document processed</span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-300 font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Claims selected ({selectedClaims.length})</span>
+            </div>
+            <div className="flex items-center gap-2 text-cyan-200 font-medium">
+              <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+              <span>Generating zero-knowledge proof…</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-400">
+              <span className="h-2 w-2 rounded-full bg-slate-500 ml-1 mr-1" />
+              <span>Verifying generated proof…</span>
+            </div>
+          </div>
+        )}
+
         {/* Generate success */}
         {generateResult && (
           <div className="mt-4 rounded-[1.25rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-emerald-200">
-              <CheckCircle2 className="h-4 w-4" />
-              {generateResult.message}
+            <div className="flex items-center gap-2 text-base font-semibold text-emerald-200">
+              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+              ✓ PROOF GENERATED
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {generateResult.claims.map((claimId) => {
-                const label = ZKP_CLAIM_LABELS[claimId] ?? claimOptions.find((c) => c.id === claimId)?.label ?? claimId;
-                return (
-                  <div key={claimId} className="flex items-center gap-2 text-sm text-emerald-100">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                    <span>{label}</span>
-                  </div>
-                );
-              })}
+            <p className="mt-1 text-sm text-emerald-200/80">
+              Your privacy-preserving proof has been successfully created.
+            </p>
+            <div className="mt-4 border-t border-emerald-400/20 pt-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300/80 mb-2">
+                Verified Claims:
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {generateResult.claims.map((claimId) => {
+                  const label = ZKP_CLAIM_LABELS[claimId] ?? claimOptions.find((c) => c.id === claimId)?.label ?? claimId;
+                  return (
+                    <div key={claimId} className="flex items-center gap-2 text-sm text-emerald-100">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                      <span>{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -706,29 +715,35 @@ export default function GenerateProof() {
         )}
       </Panel>
 
-      {/* ── Section 4: Download Proof Files ────────────────────────── */}
+      {/* ── Section 5: Download Proof Package ────────────────────────── */}
       <Panel
-        title="Download Proof Files"
-        description="Once proof generation is available, your proof files will appear here for download."
+        title="Download Proof Package"
+        description="Your proof package can be shared with the party requesting verification."
         icon={Download}
       >
         <div className="space-y-3">
-          {['proof.json', 'public.json'].map((file) => (
+          {[
+            { filename: 'proof.json', label: 'Zero-Knowledge Proof (proof.json)', desc: 'Cryptographic proof file' },
+            { filename: 'public.json', label: 'Public Signals (public.json)', desc: 'Public claim parameters' }
+          ].map((item) => (
             <div
-              key={file}
+              key={item.filename}
               className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
             >
               <div className="flex items-center gap-3">
                 <Download className="h-4 w-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-400">{file}</span>
+                <div>
+                  <span className="text-sm font-medium text-white">{item.label}</span>
+                  <p className="text-xs text-slate-400">{item.desc}</p>
+                </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={generateResult === null || downloadingFile === file}
-                onClick={() => handleDownloadFile(file)}
+                disabled={generateResult === null || downloadingFile === item.filename}
+                onClick={() => handleDownloadFile(item.filename)}
               >
-                {downloadingFile === file ? (
+                {downloadingFile === item.filename ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     Downloading…
@@ -758,11 +773,9 @@ export default function GenerateProof() {
           </div>
         )}
 
-        <div className="mt-4">
-          <Button href="/verify-proof" variant="outline" className="justify-between">
-            Go to Verify Proof
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+        <div className="mt-4 rounded-[1rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-xs leading-6 text-cyan-50">
+          <ShieldCheck className="mb-1 mr-2 inline-block h-3.5 w-3.5" />
+          Your proof package can be shared with the party requesting verification.
         </div>
       </Panel>
     </div>

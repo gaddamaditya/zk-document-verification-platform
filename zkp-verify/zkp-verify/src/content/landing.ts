@@ -8,7 +8,7 @@ export const landingContent = {
       'Prove facts such as age, identity, academic qualifications, and document authenticity without sharing the original document.',
     actions: [
       { label: 'Generate Proof', href: '/generate-proof', variant: 'default' as const },
-      { label: 'Verify Proof', href: '/verify-proof', variant: 'outline' as const },
+      { label: 'How It Works', href: '/how-zkp-works', variant: 'outline' as const },
     ],
     infoCards: [
       {
@@ -59,9 +59,10 @@ export const landingContent = {
   ],
   platformWorkflow: [
     'Upload Document',
+    'OCR Detection',
     'Select Claims',
     'Generate Proof',
-    'Verify Proof',
+    'Download Package',
   ],
   comparisonVisual: {
     traditional: {
@@ -152,8 +153,8 @@ export const landingContent = {
     },
     {
       number: '04',
-      title: 'Share and verify',
-      description: 'Download your proof files and share them with a verifier, who can confirm the claims without seeing your document.',
+      title: 'Download proof package',
+      description: 'Download your proof package and share it with the party requesting verification.',
     },
   ],
   actions: [
@@ -166,18 +167,18 @@ export const landingContent = {
       featured: true,
     },
     {
-      title: 'Verify Proof',
-      description: 'Upload proof files received from a prover and verify the claims without ever seeing the original document.',
-      href: '/verify-proof',
-      cta: 'Start Verifying',
-      icon: ShieldCheck,
+      title: 'How It Works',
+      description: 'Learn how zero-knowledge proofs enable privacy-preserving document verification step-by-step.',
+      href: '/how-zkp-works',
+      cta: 'Learn More',
+      icon: Workflow,
       featured: false,
     },
     {
       title: 'Contact',
       description: 'For project discussions, feedback, collaboration opportunities, or technical questions.',
       href: '/contact',
-      cta: 'Contact',
+      cta: 'Contact Us',
       icon: Mail,
       featured: false,
     },
