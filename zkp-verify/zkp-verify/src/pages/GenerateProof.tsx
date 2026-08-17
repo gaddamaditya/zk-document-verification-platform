@@ -18,7 +18,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/config';
+import { API_BASE_URL, getAppBaseUrl } from '@/config';
 
 // Document-aware claim configurations
 const AADHAAR_CLAIMS = [
@@ -347,7 +347,8 @@ export default function GenerateProof() {
 
   const openQrModal = async () => {
     if (!generateResult?.proofId) return;
-    const verifyUrl = `${window.location.origin}/verify?proof=${generateResult.proofId}`;
+    const baseUrl = getAppBaseUrl();
+    const verifyUrl = `${baseUrl}/verify?proof=${generateResult.proofId}`;
     try {
       const dataUrl = await QRCode.toDataURL(verifyUrl, { width: 280, margin: 2, color: { dark: '#0F172A', light: '#FFFFFF' } });
       setQrDataUrl(dataUrl);
@@ -359,7 +360,8 @@ export default function GenerateProof() {
 
   const copyVerifyLink = () => {
     if (!generateResult?.proofId) return;
-    const verifyUrl = `${window.location.origin}/verify?proof=${generateResult.proofId}`;
+    const baseUrl = getAppBaseUrl();
+    const verifyUrl = `${baseUrl}/verify?proof=${generateResult.proofId}`;
     navigator.clipboard.writeText(verifyUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
