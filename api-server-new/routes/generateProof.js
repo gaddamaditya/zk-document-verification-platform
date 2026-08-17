@@ -3,14 +3,15 @@
  * POST /api/generate-proof
  *
  * Runs the ZKP pipeline in-process by directly requiring and calling
- * the ZKP engine modules. Supports document-specific multi-attribute verification
- * for Aadhaar (AadhaarMultiAttributeVerifier) and Marksheet (MarksheetMultiAttributeVerifier).
+ * the ZKP engine modules. Uses proofQueue to serialize proving tasks
+ * and avoid memory spikes on resource-constrained deployment environments.
  */
 
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const { saveProofRecord } = require("../services/proofStore");
+const proofQueue = require("../services/proofMutex");
 
 const router = express.Router();
 
@@ -26,7 +27,6 @@ const extractImage = require(path.join(ZKP_ENGINE_DIR, "extractors", "imageExtra
 const detectDocumentType = require(path.join(ZKP_ENGINE_DIR, "processors", "documentType"));
 const extractAttributes = require(path.join(ZKP_ENGINE_DIR, "processors", "attributeExtractor"));
 const generateInput = require(path.join(ZKP_ENGINE_DIR, "processors", "inputGenerators", "universalInputGenerator"));
-const circuits = require(path.join(ZKP_ENGINE_DIR, "config", "circuits"));
 const buildCircuit = require(path.join(ZKP_ENGINE_DIR, "processors", "compiler", "buildCircuit"));
 const generateWitness = require(path.join(ZKP_ENGINE_DIR, "processors", "prover", "witnessGenerator"));
 const generateProofZKP = require(path.join(ZKP_ENGINE_DIR, "processors", "prover", "proofGenerator"));
@@ -143,7 +143,7 @@ router.post("/", async (req, res) => {
         // ── Step 3: Extract attributes ──────────────────────────
         console.log("[GenerateProof] Step 3: Extracting attributes...");
         const attributes = extractAttributes(documentType, extractedText);
-        console.log("[GenerateProof] ✓ Attributes extracted:", attributes);
+        console.log("[GenerateProof] ✓ Attributes extracted");
 
         // ── Step 4: Determine pipeline circuit ─────────────────
         let pipelineClaim;
@@ -170,20 +170,20 @@ router.post("/", async (req, res) => {
         buildCircuit(circuitName);
         console.log("[GenerateProof] ✓ Circuit ready");
 
-        // ── Step 7: Generate witness ────────────────────────────
-        console.log("[GenerateProof] Step 7: Generating witness...");
-        generateWitness(pipelineClaim);
-        console.log("[GenerateProof] ✓ Witness generated");
+        // ── Steps 7-9: Execute Proving Queue Task ──────────────
+        await proofQueue.run(async () => {
+            console.log("[GenerateProof] Step 7: Generating witness in-process...");
+            await generateWitness(pipelineClaim);
+            console.log("[GenerateProof] ✓ Witness generated");
 
-        // ── Step 8: Generate proof ──────────────────────────────
-        console.log("[GenerateProof] Step 8: Generating Groth16 proof...");
-        generateProofZKP(pipelineClaim);
-        console.log("[GenerateProof] ✓ Proof generated");
+            console.log("[GenerateProof] Step 8: Generating Groth16 proof in-process...");
+            await generateProofZKP(pipelineClaim);
+            console.log("[GenerateProof] ✓ Proof generated");
 
-        // ── Step 9: Verify proof ────────────────────────────────
-        console.log("[GenerateProof] Step 9: Verifying proof...");
-        verifyProofZKP(pipelineClaim);
-        console.log("[GenerateProof] ✓ Proof verified");
+            console.log("[GenerateProof] Step 9: Verifying proof in-process...");
+            verifyProofZKP(pipelineClaim);
+            console.log("[GenerateProof] ✓ Proof verified");
+        });
 
         // ── Verify output files exist ───────────────────────────
         const proofFile = path.join(ZKP_ENGINE_DIR, `${circuitName}_proof.json`);

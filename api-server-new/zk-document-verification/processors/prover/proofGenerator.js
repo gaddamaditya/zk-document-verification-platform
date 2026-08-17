@@ -1,12 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const snarkjs = require("snarkjs");
 
 const circuits = require("../../config/circuits");
 const { ZKP_ROOT } = circuits;
 
-function generateProof(selectedClaim) {
-
+async function generateProof(selectedClaim) {
     const config = circuits[selectedClaim];
 
     if (!config) {
@@ -28,33 +27,40 @@ function generateProof(selectedClaim) {
         throw new Error(`Final zKey not found: ${zkeyFile}`);
     }
 
-    // Resolve snarkjs binary — prefer local node_modules, fallback to global
-    const localSnarkjs = path.join(ZKP_ROOT, "node_modules", ".bin", "snarkjs");
-    const snarkjsBin = fs.existsSync(localSnarkjs) ? `"${localSnarkjs}"` : "snarkjs";
+    console.log("\n========== Proof Generation (In-Process Memory Efficient) ==========");
+    console.log(`[ProofGenerator] Circuit name     : ${circuit}`);
+    console.log(`[ProofGenerator] zKey path        : ${zkeyFile}`);
+    console.log(`[ProofGenerator] Witness path     : ${witnessFile}`);
+    console.log("[ProofGenerator] Starting Groth16 proving...");
 
-    console.log("\n========== Proof Generation ==========\n");
+    try {
+        const { proof, publicSignals } = await snarkjs.groth16.prove(zkeyFile, witnessFile);
 
-    execSync(
-        `${snarkjsBin} groth16 prove "${zkeyFile}" "${witnessFile}" "${proofFile}" "${publicSignalsFile}"`,
-        { stdio: "inherit" }
-    );
+        fs.writeFileSync(proofFile, JSON.stringify(proof, null, 2));
+        fs.writeFileSync(publicSignalsFile, JSON.stringify(publicSignals, null, 2));
 
-    if (!fs.existsSync(proofFile)) {
-        throw new Error(`Proof file was not generated: ${proofFile}`);
+        console.log("[ProofGenerator] ✓ Groth16 proof generated in-process.");
+        console.log(`[ProofGenerator] Proof file          : ${proofFile}`);
+        console.log(`[ProofGenerator] Public signals file : ${publicSignalsFile}`);
+
+        return {
+            proof: proofFile,
+            publicSignals: publicSignalsFile
+        };
+    } catch (err) {
+        console.error(`[ProofGenerator] ❌ Proving failed for circuit ${circuit}:`, err.message);
+        throw new Error(`Groth16 proving failed for ${circuit}: ${err.message}`);
+    } finally {
+        // Clean up temporary witness file after proof generation
+        if (fs.existsSync(witnessFile)) {
+            try {
+                fs.unlinkSync(witnessFile);
+                console.log(`[ProofGenerator] ✓ Temporary witness file cleaned up: ${witnessFile}`);
+            } catch (cleanupErr) {
+                console.warn(`[ProofGenerator] ⚠ Could not remove witness file: ${cleanupErr.message}`);
+            }
+        }
     }
-
-    if (!fs.existsSync(publicSignalsFile)) {
-        throw new Error(`Public signals file was not generated: ${publicSignalsFile}`);
-    }
-
-    console.log("\n✓ Proof Generated Successfully.");
-    console.log(`Proof File          : ${proofFile}`);
-    console.log(`Public Signals File : ${publicSignalsFile}`);
-
-    return {
-        proof: proofFile,
-        publicSignals: publicSignalsFile
-    };
 }
 
 module.exports = generateProof;
