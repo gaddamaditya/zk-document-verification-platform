@@ -18,13 +18,13 @@ import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/config';
 
 const claimOptions = [
-  { id: 'name_verification', label: 'Name Verification' },
-  { id: 'age_verification', label: 'Age ≥ 18 Verification' },
-  { id: 'gender_verification', label: 'Gender Verification' },
-  { id: 'result_verification', label: 'Academic Result Verification' },
-  { id: 'cgpa_verification', label: 'Grade Verification' },
-  { id: 'degree_verification', label: 'Student Name Verification' },
-  { id: 'certificate_authenticity', label: 'Grand Total Verification' },
+  { id: 'name_verification', label: 'Name Verification', description: 'Prove identity name without sharing original document.', icon: ShieldCheck },
+  { id: 'age_verification', label: 'Age ≥ 18 Verification', description: 'Prove age is 18+ without revealing birth date.', icon: ShieldCheck },
+  { id: 'gender_verification', label: 'Gender Verification', description: 'Prove gender record without exposing full ID.', icon: ShieldCheck },
+  { id: 'degree_verification', label: 'Student Name Verification', description: 'Prove student name on academic transcript.', icon: CheckCircle2 },
+  { id: 'result_verification', label: 'Academic Result Verification', description: 'Prove passing qualification status.', icon: CheckCircle2 },
+  { id: 'cgpa_verification', label: 'Grade Verification', description: 'Prove grade eligibility status.', icon: CheckCircle2 },
+  { id: 'certificate_authenticity', label: 'Grand Total Verification', description: 'Prove total marks score validity.', icon: CheckCircle2 },
 ];
 
 /** Map ZKP engine claim names back to human-readable labels */
@@ -577,20 +577,29 @@ export default function GenerateProof() {
         <div className="grid gap-3 sm:grid-cols-2">
           {claimOptions.map((claim) => {
             const selected = selectedClaims.includes(claim.id);
+            const Icon = claim.icon;
             return (
               <button
                 key={claim.id}
                 type="button"
                 onClick={() => toggleClaim(claim.id)}
                 className={cn(
-                  'flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all',
+                  'flex w-full items-start justify-between rounded-xl border p-4 text-left transition-all',
                   selected
-                    ? 'border-teal-500/50 bg-teal-500/10 text-foreground font-semibold shadow-xs'
+                    ? 'border-teal-500/50 bg-teal-500/10 text-foreground shadow-xs'
                     : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/50',
                 )}
               >
-                <span className="text-sm">{claim.label}</span>
-                {selected && <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />}
+                <div className="flex items-start gap-3">
+                  <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border mt-0.5', selected ? 'bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30' : 'bg-muted/50 text-muted-foreground')}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className={cn('text-sm font-semibold', selected ? 'text-foreground font-bold' : 'text-foreground')}>{claim.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
+                  </div>
+                </div>
+                {selected && <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5 ml-2" />}
               </button>
             );
           })}
