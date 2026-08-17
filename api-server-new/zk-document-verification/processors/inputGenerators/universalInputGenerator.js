@@ -6,8 +6,10 @@ const generateGradeInput = require("./gradeInputGenerator");
 const generateGrandTotalInput = require("./grandTotalInputGenerator");
 const generateStudentNameInput = require("./studentNameInputGenerator");
 const generateMultiAttributeInput = require("./multiAttributeInputGenerator");
+const generateAadhaarMultiAttributeInput = require("./aadhaarMultiAttributeInputGenerator");
+const generateMarksheetMultiAttributeInput = require("./marksheetMultiAttributeInputGenerator");
 
-async function generateInput(selectedClaim, attributes) {
+async function generateInput(selectedClaim, attributes, selectedClaimsList = []) {
 
     switch (selectedClaim) {
 
@@ -41,6 +43,14 @@ async function generateInput(selectedClaim, attributes) {
 
         case "MULTI_ATTRIBUTE":
             generateMultiAttributeInput(attributes);
+            break;
+
+        case "AADHAAR_MULTI_ATTRIBUTE":
+            generateAadhaarMultiAttributeInput(attributes, selectedClaimsList);
+            break;
+
+        case "MARKSHEET_MULTI_ATTRIBUTE":
+            generateMarksheetMultiAttributeInput(attributes, selectedClaimsList);
             break;
 
         default:

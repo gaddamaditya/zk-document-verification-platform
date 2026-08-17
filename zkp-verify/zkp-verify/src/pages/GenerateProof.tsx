@@ -17,26 +17,37 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/config';
 
-const claimOptions = [
-  { id: 'name_verification', label: 'Name Verification', description: 'Prove identity name without sharing original document.', icon: ShieldCheck },
-  { id: 'age_verification', label: 'Age ≥ 18 Verification', description: 'Prove age is 18+ without revealing birth date.', icon: ShieldCheck },
-  { id: 'gender_verification', label: 'Gender Verification', description: 'Prove gender record without exposing full ID.', icon: ShieldCheck },
-  { id: 'degree_verification', label: 'Student Name Verification', description: 'Prove student name on academic transcript.', icon: CheckCircle2 },
-  { id: 'result_verification', label: 'Academic Result Verification', description: 'Prove passing qualification status.', icon: CheckCircle2 },
-  { id: 'cgpa_verification', label: 'Grade Verification', description: 'Prove grade eligibility status.', icon: CheckCircle2 },
-  { id: 'certificate_authenticity', label: 'Grand Total Verification', description: 'Prove total marks score validity.', icon: CheckCircle2 },
+// Document-aware claim configurations
+const AADHAAR_CLAIMS = [
+  { id: 'name_verification', label: 'Verify Name', description: 'Prove identity name without revealing raw document text.', icon: ShieldCheck, attrKey: 'name' },
+  { id: 'dob_verification', label: 'Verify Date of Birth', description: 'Prove birth date record validity.', icon: ShieldCheck, attrKey: 'dob' },
+  { id: 'age_verification', label: 'Verify Age ≥ 18', description: 'Prove age is 18+ without disclosing birth date.', icon: ShieldCheck, attrKey: 'dob' },
+  { id: 'gender_verification', label: 'Verify Gender', description: 'Prove gender record validity.', icon: ShieldCheck, attrKey: 'gender' },
+];
+
+const MARKSHEET_CLAIMS = [
+  { id: 'degree_verification', label: 'Verify Student Name', description: 'Prove student name on academic transcript.', icon: CheckCircle2, attrKey: 'studentName' },
+  { id: 'gender_verification', label: 'Verify Gender', description: 'Prove gender field validity.', icon: CheckCircle2, attrKey: 'gender' },
+  { id: 'result_verification', label: 'Verify Result', description: 'Prove passing qualification status.', icon: CheckCircle2, attrKey: 'result' },
+  { id: 'cgpa_verification', label: 'Verify Grade', description: 'Prove grade eligibility status.', icon: CheckCircle2, attrKey: 'grade' },
+  { id: 'certificate_authenticity', label: 'Verify Grand Total', description: 'Prove total score validity.', icon: CheckCircle2, attrKey: 'grandTotal' },
+  { id: 'cgpa_attribute_verification', label: 'Verify CGPA', description: 'Prove CGPA score requirement.', icon: CheckCircle2, attrKey: 'cgpa' },
 ];
 
 /** Map ZKP engine claim names back to human-readable labels */
 const ZKP_CLAIM_LABELS: Record<string, string> = {
   NAME: 'Name Verification',
+  DOB: 'Date of Birth Verification',
   AGE_18_PLUS: 'Age ≥ 18 Verification',
   GENDER: 'Gender Verification',
   STUDENT_NAME: 'Student Name Verification',
   RESULT: 'Academic Result Verification',
   GRADE: 'Grade Verification',
   GRAND_TOTAL: 'Grand Total Verification',
+  CGPA: 'CGPA Verification',
   MULTI_ATTRIBUTE: 'Multi-Attribute Verification',
+  AADHAAR_MULTI_ATTRIBUTE: 'Aadhaar Multi-Attribute Verification',
+  MARKSHEET_MULTI_ATTRIBUTE: 'Marksheet Multi-Attribute Verification',
 };
 
 function Panel({
@@ -86,7 +97,6 @@ interface OcrResult {
 
 // ── Privacy masking utilities ──────────────────────────────────
 
-/** Pretty labels for attribute keys */
 const FIELD_LABELS: Record<string, string> = {
   name: 'Name',
   studentName: 'Student Name',
@@ -185,6 +195,7 @@ export default function GenerateProof() {
     setOcrData(null);
     setOcrLoading(false);
     setOcrError(null);
+    setSelectedClaims([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -246,6 +257,7 @@ export default function GenerateProof() {
     setOcrLoading(true);
     setOcrError(null);
     setOcrData(null);
+    setSelectedClaims([]);
 
     try {
       const url = `${API_BASE_URL}/api/ocr`;
@@ -272,7 +284,8 @@ export default function GenerateProof() {
     }
   };
 
-  const toggleClaim = (id: string) => {
+  const toggleClaim = (id: string, available: boolean) => {
+    if (!available) return;
     setSelectedClaims((current) =>
       current.includes(id) ? current.filter((claimId) => claimId !== id) : [...current, id],
     );
@@ -346,6 +359,19 @@ export default function GenerateProof() {
     } finally {
       setDownloadingFile(null);
     }
+  };
+
+  // Determine active claim options based on detected document type
+  const isMarksheet = ocrData?.documentType === 'MARKSHEET';
+  const claimOptions = isMarksheet ? MARKSHEET_CLAIMS : AADHAAR_CLAIMS;
+
+  // Check whether an attribute is detected in OCR
+  const isAttributeDetected = (attrKey: string) => {
+    if (!ocrData || !ocrData.attributes) return true; // Default enabled before OCR completes
+    const attrs = ocrData.attributes;
+    if (attrKey === 'studentName') return Boolean(attrs.studentName || attrs.name);
+    if (attrKey === 'cgpa') return Boolean(attrs.cgpa || attrs.grade);
+    return Boolean(attrs[attrKey]);
   };
 
   // Derived state
@@ -570,33 +596,56 @@ export default function GenerateProof() {
 
       {/* ── Step 3: Select Claims ───────────────────────────────── */}
       <Panel
-        title="What would you like to prove?"
-        description="Select one or more verifiable claims supported by your document."
+        title="Claims available for this document"
+        description="Select any combination of attributes to generate a unified zero-knowledge proof."
         icon={ShieldCheck}
       >
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+            Detected Format: {ocrData?.documentType || 'DOCUMENT'}
+          </span>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2">
           {claimOptions.map((claim) => {
+            const detected = isAttributeDetected(claim.attrKey);
             const selected = selectedClaims.includes(claim.id);
             const Icon = claim.icon;
+
             return (
               <button
                 key={claim.id}
                 type="button"
-                onClick={() => toggleClaim(claim.id)}
+                disabled={!detected}
+                onClick={() => toggleClaim(claim.id, detected)}
                 className={cn(
                   'flex w-full items-start justify-between rounded-xl border p-4 text-left transition-all',
-                  selected
-                    ? 'border-teal-500/50 bg-teal-500/10 text-foreground shadow-xs'
-                    : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/50',
+                  !detected
+                    ? 'border-border bg-muted/20 text-muted-foreground opacity-50 cursor-not-allowed'
+                    : selected
+                      ? 'border-teal-500/50 bg-teal-500/10 text-foreground shadow-xs'
+                      : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/50',
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border mt-0.5', selected ? 'bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30' : 'bg-muted/50 text-muted-foreground')}>
+                  <div className={cn(
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border mt-0.5',
+                    !detected
+                      ? 'bg-muted text-muted-foreground'
+                      : selected
+                        ? 'bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30'
+                        : 'bg-muted/50 text-muted-foreground'
+                  )}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div>
                     <p className={cn('text-sm font-semibold', selected ? 'text-foreground font-bold' : 'text-foreground')}>{claim.label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
+                    {!detected && (
+                      <p className="text-[0.7rem] font-medium text-amber-600 dark:text-amber-400 mt-1">
+                        Not detected in this document
+                      </p>
+                    )}
                   </div>
                 </div>
                 {selected && <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5 ml-2" />}
@@ -606,8 +655,11 @@ export default function GenerateProof() {
         </div>
 
         {selectedClaims.length > 0 && (
-          <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3.5 text-xs text-foreground font-medium">
-            <span className="font-bold text-teal-600 dark:text-teal-400">{selectedClaims.length}</span> claim{selectedClaims.length !== 1 && 's'} selected
+          <div className="mt-4 rounded-xl border border-teal-500/30 bg-teal-500/5 p-3.5 text-xs text-foreground font-medium flex items-center justify-between">
+            <div>
+              <span className="font-bold text-teal-600 dark:text-teal-400">{selectedClaims.length}</span> claim{selectedClaims.length !== 1 && 's'} selected
+            </div>
+            <span className="text-muted-foreground text-[0.75rem]">One proof will verify all selected claims.</span>
           </div>
         )}
       </Panel>
@@ -673,7 +725,7 @@ export default function GenerateProof() {
               Proof Generated Successfully
             </div>
             <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-              Your document has been converted into a zero-knowledge proof.
+              Your claim has been converted into a zero-knowledge proof without revealing your original document.
             </p>
             <div className="mt-4 border-t border-emerald-500/20 pt-3">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-2">

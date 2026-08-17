@@ -57,6 +57,18 @@ module.exports = {
         circuit: "MultiAttributeVerifier",
         inputFile: path.join(ZKP_ROOT, "inputs", "multiAttributeInput.json"),
         description: "Verify Multiple Attributes"
+    },
+
+    AADHAAR_MULTI_ATTRIBUTE: {
+        circuit: "AadhaarMultiAttributeVerifier",
+        inputFile: path.join(ZKP_ROOT, "inputs", "aadhaarMultiAttributeInput.json"),
+        description: "Aadhaar Multi-Attribute Verifier"
+    },
+
+    MARKSHEET_MULTI_ATTRIBUTE: {
+        circuit: "MarksheetMultiAttributeVerifier",
+        inputFile: path.join(ZKP_ROOT, "inputs", "marksheetMultiAttributeInput.json"),
+        description: "Marksheet Multi-Attribute Verifier"
     }
 
 };

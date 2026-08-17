@@ -3,8 +3,8 @@
  * POST /api/generate-proof
  *
  * Runs the ZKP pipeline in-process by directly requiring and calling
- * the ZKP engine modules. This eliminates process.cwd() dependency,
- * subprocess spawning, stdin piping, and PATH manipulation.
+ * the ZKP engine modules. Supports document-specific multi-attribute verification
+ * for Aadhaar (AadhaarMultiAttributeVerifier) and Marksheet (MarksheetMultiAttributeVerifier).
  */
 
 const express = require("express");
@@ -42,35 +42,8 @@ const CLAIM_MAP = {
     cgpa_verification: "GRADE",
     degree_verification: "STUDENT_NAME",
     certificate_authenticity: "GRAND_TOTAL",
+    cgpa_attribute_verification: "CGPA",
 };
-
-// ─── Claim → circuit name mapping ──────────────────────────────
-const CLAIM_TO_CIRCUIT = {
-    NAME: "NameVerifier",
-    AGE_18_PLUS: "AgeVerifier",
-    GENDER: "GenderVerifier",
-    STUDENT_NAME: "StudentNameVerifier",
-    RESULT: "ResultVerifier",
-    GRADE: "GradeVerifier",
-    GRAND_TOTAL: "GrandTotalVerifier",
-};
-
-function getCircuitName(claims) {
-    if (claims.length === 1) {
-        return CLAIM_TO_CIRCUIT[claims[0]] || null;
-    }
-
-    if (
-        claims.length === 3 &&
-        claims.includes("NAME") &&
-        claims.includes("AGE_18_PLUS") &&
-        claims.includes("GENDER")
-    ) {
-        return "MultiAttributeVerifier";
-    }
-
-    return null;
-}
 
 // ─── Helper: find uploaded file by fileId ───────────────────────
 function findUploadedFile(fileId) {
@@ -114,34 +87,6 @@ router.post("/", async (req, res) => {
         console.log("[GenerateProof] Frontend claims:", claims);
         console.log("[GenerateProof] Normalized claims:", normalizedClaims);
 
-        // ── Determine circuit (single or multi-attribute) ────────
-        const circuitName = getCircuitName(normalizedClaims);
-        if (!circuitName) {
-            return res.status(400).json({
-                success: false,
-                error: `Unsupported claim combination: ${normalizedClaims.join(", ")}. ` +
-                       `Single claims or the combination NAME+AGE_18_PLUS+GENDER are supported.`,
-            });
-        }
-
-        // Determine whether this is single-claim or multi-attribute
-        const isMultiAttribute = normalizedClaims.length > 1;
-        // The pipeline claim key used for input generation, witness, proof, verify
-        const pipelineClaim = isMultiAttribute ? "MULTI_ATTRIBUTE" : normalizedClaims[0];
-
-        // Validate the pipeline claim has a circuit config entry
-        const circuitConfig = circuits[pipelineClaim];
-        if (!circuitConfig) {
-            return res.status(400).json({
-                success: false,
-                error: `Unsupported claim: ${pipelineClaim}`,
-            });
-        }
-
-        console.log(`[GenerateProof] Pipeline claim: ${pipelineClaim}`);
-        console.log(`[GenerateProof] Circuit: ${circuitName}`);
-        console.log(`[GenerateProof] Multi-attribute: ${isMultiAttribute}`);
-
         // ── Locate uploaded file ────────────────────────────────
         const uploadedFilePath = findUploadedFile(fileId);
         if (!uploadedFilePath) {
@@ -162,7 +107,6 @@ router.post("/", async (req, res) => {
         }
 
         fs.copyFileSync(uploadedFilePath, destPath);
-        console.log(`[GenerateProof] Copied to: ${destPath}`);
 
         // ── Step 1: Extract text ────────────────────────────────
         console.log("[GenerateProof] Step 1: Extracting text...");
@@ -185,8 +129,6 @@ router.post("/", async (req, res) => {
                 });
         }
 
-        console.log("[GenerateProof] ✓ Text extraction completed");
-
         // ── Step 2: Detect document type ────────────────────────
         console.log("[GenerateProof] Step 2: Detecting document type...");
         const documentType = detectDocumentType(extractedText);
@@ -195,24 +137,26 @@ router.post("/", async (req, res) => {
         // ── Step 3: Extract attributes ──────────────────────────
         console.log("[GenerateProof] Step 3: Extracting attributes...");
         const attributes = extractAttributes(documentType, extractedText);
-        console.log("[GenerateProof] ✓ Attributes extracted");
+        console.log("[GenerateProof] ✓ Attributes extracted:", attributes);
 
-        // ── Step 4: Validate claims are available ───────────────
-        console.log("[GenerateProof] Step 4: Validating claims...");
-        const availableClaims = generateClaims(attributes);
-        for (const claim of normalizedClaims) {
-            if (!availableClaims.includes(claim)) {
-                return res.status(400).json({
-                    success: false,
-                    error: `Claim "${claim}" is not available for this document. Available: ${availableClaims.join(", ")}`,
-                });
-            }
+        // ── Step 4: Determine pipeline circuit ─────────────────
+        let pipelineClaim;
+        let circuitName;
+
+        if (documentType === "MARKSHEET" || normalizedClaims.some(c => ["STUDENT_NAME", "RESULT", "GRADE", "GRAND_TOTAL", "CGPA"].includes(c))) {
+            pipelineClaim = "MARKSHEET_MULTI_ATTRIBUTE";
+            circuitName = "MarksheetMultiAttributeVerifier";
+        } else {
+            pipelineClaim = "AADHAAR_MULTI_ATTRIBUTE";
+            circuitName = "AadhaarMultiAttributeVerifier";
         }
-        console.log(`[GenerateProof] ✓ All claims valid: ${normalizedClaims.join(", ")}`);
 
-        // ── Step 5: Generate input ──────────────────────────────
+        console.log(`[GenerateProof] Pipeline claim: ${pipelineClaim}`);
+        console.log(`[GenerateProof] Circuit: ${circuitName}`);
+
+        // ── Step 5: Generate circuit input ──────────────────────
         console.log("[GenerateProof] Step 5: Generating circuit input...");
-        await generateInput(pipelineClaim, attributes);
+        await generateInput(pipelineClaim, attributes, normalizedClaims);
         console.log("[GenerateProof] ✓ Input generated");
 
         // ── Step 6: Build circuit (skip if pre-built) ───────────
