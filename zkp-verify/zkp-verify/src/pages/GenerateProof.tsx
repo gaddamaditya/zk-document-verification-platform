@@ -1,9 +1,7 @@
 import { useRef, useState } from 'react';
-
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
   Download,
   FileText,
@@ -55,14 +53,14 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn('rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl', className)}>
-      <div className="mb-5 flex items-start gap-3 border-b border-white/10 pb-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
+    <div className={cn('rounded-2xl border border-border bg-card p-6 shadow-sm', className)}>
+      <div className="mb-5 flex items-start gap-3 border-b border-border pb-4">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-slate-400">{description}</p>
+          <h3 className="text-lg font-bold text-foreground">{title}</h3>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
       </div>
       {children}
@@ -120,17 +118,17 @@ function StepIndicator({ step, label, active, completed }: { step: number; label
     <div className="flex items-center gap-3">
       <div
         className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors',
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors',
           completed
-            ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-200'
+            ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300'
             : active
-              ? 'border-cyan-400/30 bg-cyan-400/15 text-cyan-200'
-              : 'border-white/10 bg-white/5 text-slate-500',
+              ? 'border-teal-500/40 bg-teal-500/15 text-teal-600 dark:text-teal-300'
+              : 'border-border bg-muted/50 text-muted-foreground',
         )}
       >
         {completed ? <CheckCircle2 className="h-4 w-4" /> : step}
       </div>
-      <span className={cn('text-sm font-medium', active || completed ? 'text-white' : 'text-slate-500')}>{label}</span>
+      <span className={cn('text-sm font-medium', active || completed ? 'text-foreground font-semibold' : 'text-muted-foreground')}>{label}</span>
     </div>
   );
 }
@@ -221,7 +219,7 @@ export default function GenerateProof() {
       try {
         data = await res.json();
       } catch {
-        setUploadError(`Invalid response from server (HTTP ${res.status}). The server may be misconfigured.`);
+        setUploadError(`Invalid response from server (HTTP ${res.status}).`);
         return;
       }
 
@@ -233,10 +231,8 @@ export default function GenerateProof() {
       const uploadedFile = data.file as UploadMeta;
       setUploadResult(uploadedFile);
 
-      // Auto-trigger OCR extraction (non-blocking — if OCR fails,
-      // upload is still considered successful)
       fetchOcr(uploadedFile.id).catch((err) => {
-        console.warn('[GenerateProof] OCR auto-extraction failed (non-blocking):', err);
+        console.warn('[GenerateProof] OCR auto-extraction failed:', err);
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -360,62 +356,61 @@ export default function GenerateProof() {
   const currentStep = !documentUploaded ? 1 : !ocrReady ? 2 : !hasSelectedClaims ? 3 : !proofGenerated ? 4 : 5;
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-16">
       {/* Hero */}
       <section className="max-w-4xl">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200"
+          className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300"
         >
-          <span className="h-2 w-2 rounded-full bg-cyan-300" />
+          <ShieldCheck className="h-3.5 w-3.5" />
           Prover Workflow
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl"
+          className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
         >
-          Generate Proof
+          Prove a Claim
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mt-4 max-w-3xl text-base leading-8 text-slate-400 sm:text-lg"
+          className="mt-2 text-base leading-7 text-muted-foreground"
         >
-          Upload a document, select the claims you want to prove, and generate a zero-knowledge proof. The proof can be shared with a verifier without revealing your original document.
+          Generate a privacy-preserving zero-knowledge proof from your document without revealing sensitive information.
         </motion.p>
       </section>
 
       {/* Progress steps */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="flex flex-wrap items-center gap-6 rounded-[1.25rem] border border-white/10 bg-white/5 px-6 py-4 backdrop-blur-xl"
+        className="flex flex-wrap items-center gap-4 sm:gap-6 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs"
       >
-        <StepIndicator step={1} label="Upload Document" active={currentStep === 1} completed={documentUploaded} />
-        <div className="hidden h-px w-8 bg-white/10 sm:block" />
+        <StepIndicator step={1} label="Upload" active={currentStep === 1} completed={documentUploaded} />
+        <div className="hidden h-px w-6 bg-border sm:block" />
         <StepIndicator step={2} label="OCR Results" active={currentStep === 2} completed={ocrReady} />
-        <div className="hidden h-px w-8 bg-white/10 sm:block" />
+        <div className="hidden h-px w-6 bg-border sm:block" />
         <StepIndicator step={3} label="Select Claims" active={currentStep === 3} completed={ocrReady && hasSelectedClaims} />
-        <div className="hidden h-px w-8 bg-white/10 sm:block" />
-        <StepIndicator step={4} label="Generate Proof" active={currentStep === 4} completed={proofGenerated} />
-        <div className="hidden h-px w-8 bg-white/10 sm:block" />
-        <StepIndicator step={5} label="Download Files" active={currentStep === 5} completed={false} />
+        <div className="hidden h-px w-6 bg-border sm:block" />
+        <StepIndicator step={4} label="Generate" active={currentStep === 4} completed={proofGenerated} />
+        <div className="hidden h-px w-6 bg-border sm:block" />
+        <StepIndicator step={5} label="Download" active={currentStep === 5} completed={false} />
       </motion.div>
 
-      {/* ── Section 1: Upload Document ─────────────────────────────── */}
+      {/* ── Step 1: Upload Document ─────────────────────────────── */}
       <Panel
         title="Upload Document"
-        description="Select a PDF, PNG, or JPEG document to begin."
+        description="PDF or supported image file (PNG, JPG)."
         icon={FileUp}
       >
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -426,43 +421,44 @@ export default function GenerateProof() {
 
         <div
           className={cn(
-            'rounded-[1.25rem] border-2 border-dashed bg-slate-950/30 px-6 py-12 text-center transition-colors',
+            'rounded-2xl border-2 border-dashed bg-muted/30 px-6 py-10 text-center transition-colors',
             dragOver
-              ? 'border-cyan-400/50 bg-cyan-400/5'
-              : 'border-white/10 hover:border-cyan-400/30 hover:bg-white/5',
+              ? 'border-teal-500 bg-teal-500/5'
+              : 'border-border hover:border-teal-500/50 hover:bg-muted/50',
           )}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 text-cyan-200">
-            <Upload className="h-7 w-7" />
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-teal-600 dark:text-teal-400 shadow-xs">
+            <Upload className="h-6 w-6" />
           </div>
-          <h4 className="text-lg font-semibold text-white">Drag and drop your document</h4>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
+          <h4 className="text-base font-bold text-foreground">Upload your document</h4>
+          <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
             Supports PDF, PNG, and JPEG files up to 10 MB.
           </p>
 
-          {/* Selected file chip */}
           {selectedFile && (
-            <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100">
-              <FileUp className="h-4 w-4" />
+            <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-xs text-teal-700 dark:text-teal-300 font-medium">
+              <FileUp className="h-3.5 w-3.5" />
               <span className="max-w-[200px] truncate">{selectedFile.name}</span>
-              <span className="text-xs text-slate-400">({formatBytes(selectedFile.size)})</span>
-              <button type="button" onClick={clearFile} className="ml-1 rounded-full p-0.5 hover:bg-white/10">
+              <span className="text-muted-foreground">({formatBytes(selectedFile.size)})</span>
+              <button type="button" onClick={clearFile} className="ml-1 rounded-full p-0.5 hover:bg-muted">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
-              Browse files
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              Choose Document
             </Button>
             <Button
-              variant="outline"
+              variant="default"
+              size="sm"
               disabled={!selectedFile || uploading}
               onClick={uploadFile}
+              className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
             >
               {uploading ? (
                 <>
@@ -470,115 +466,100 @@ export default function GenerateProof() {
                   Uploading…
                 </>
               ) : (
-                'Upload Document'
+                'Upload & Process'
               )}
             </Button>
           </div>
         </div>
 
-        {/* Upload success */}
         {uploadResult && (
-          <div className="mt-4 flex items-center gap-3 rounded-[1.25rem] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-200">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            Document uploaded — {uploadResult.originalName} ({formatBytes(uploadResult.size)})
+            Document uploaded successfully — {uploadResult.originalName} ({formatBytes(uploadResult.size)})
           </div>
         )}
 
-        {/* Upload error */}
         {uploadError && (
-          <div className="mt-4 flex items-start gap-3 rounded-[1.25rem] border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-700 dark:text-red-300">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{uploadError}</span>
           </div>
         )}
-
-        {/* Privacy notice */}
-        <div className="mt-4 rounded-[1rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-xs leading-6 text-cyan-50">
-          <ShieldCheck className="mb-1 mr-2 inline-block h-3.5 w-3.5" />
-          Your document is used only to generate a cryptographic proof. The original document is not intended to be permanently stored.
-        </div>
       </Panel>
 
-      {/* ── Section 2: OCR Results ─────────────────────────────────── */}
+      {/* ── Step 2: OCR Results ─────────────────────────────────── */}
       {documentUploaded && (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.3 }}
         >
           <Panel
             title="OCR Results"
             description="Information extracted from the uploaded document."
             icon={FileText}
           >
-            {/* Loading state */}
             {ocrLoading && (
-              <div className="flex items-center gap-3 py-6 text-sm text-slate-400">
-                <Loader2 className="h-5 w-5 animate-spin text-cyan-300" />
+              <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
                 <span>Extracting document information…</span>
               </div>
             )}
 
-            {/* Error state */}
             {ocrError && (
-              <div className="flex items-start gap-3 rounded-[1.25rem] border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+              <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
                   <p>{ocrError}</p>
-                  <p className="mt-1 text-xs text-amber-300/70">You can still proceed with claim selection.</p>
+                  <p className="mt-1 text-xs opacity-80">You can still proceed with claim selection.</p>
                 </div>
               </div>
             )}
 
-            {/* OCR data display */}
             {ocrData && (
               <div className="space-y-4">
-                {/* Document type badge */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                   <FileText className="h-3.5 w-3.5" />
                   {ocrData.documentType}
                 </div>
 
-                {/* Extracted Attributes summary */}
-                <div className="rounded-xl border border-white/10 bg-slate-950/40 px-4 py-4">
-                  <p className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <div className="rounded-xl border border-border bg-muted/40 p-4">
+                  <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Extracted Attributes
                   </p>
                   <div className="space-y-1.5">
                     {Object.entries(ocrData.attributes)
                       .filter(([key, value]) => key !== 'type' && Boolean(value))
                       .map(([key]) => (
-                        <div key={`summary-${key}`} className="flex items-center gap-2 text-sm text-emerald-200">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                        <div key={`summary-${key}`} className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                           <span>{FIELD_LABELS[key] ?? key} Detected</span>
                         </div>
                       ))}
                   </div>
                 </div>
 
-                {/* Attributes grid */}
                 <div className="grid gap-3 sm:grid-cols-2">
                   {Object.entries(ocrData.attributes)
                     .filter(([key, value]) => key !== 'type' && Boolean(value))
                     .map(([key]) => (
                       <div
                         key={key}
-                        className="rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
+                        className="rounded-xl border border-border bg-card p-3.5 shadow-xs"
                       >
-                        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                        <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">
                           {FIELD_LABELS[key] ?? key}
                         </p>
-                        <p className="mt-1 text-sm font-medium text-emerald-200 flex items-center gap-1.5">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                        <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
                           Detected ✓
                         </p>
                       </div>
                     ))}
                 </div>
 
-                {/* Privacy notice */}
-                <div className="rounded-[1rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-xs leading-6 text-cyan-50">
-                  <ShieldCheck className="mb-1 mr-2 inline-block h-3.5 w-3.5" />
+                <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6">
+                  <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
                   Sensitive fields are masked for privacy. This panel is informational only and does not affect proof generation.
                 </div>
               </div>
@@ -587,10 +568,10 @@ export default function GenerateProof() {
         </motion.div>
       )}
 
-      {/* ── Section 3: Select Claims ───────────────────────────────── */}
+      {/* ── Step 3: Select Claims ───────────────────────────────── */}
       <Panel
-        title="Select Claims"
-        description="Choose one or more claims you want to prove about your document."
+        title="What would you like to prove?"
+        description="Select one or more verifiable claims supported by your document."
         icon={ShieldCheck}
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -602,37 +583,37 @@ export default function GenerateProof() {
                 type="button"
                 onClick={() => toggleClaim(claim.id)}
                 className={cn(
-                  'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors',
+                  'flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all',
                   selected
-                    ? 'border-cyan-400/30 bg-cyan-400/10 text-white'
-                    : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10',
+                    ? 'border-teal-500/50 bg-teal-500/10 text-foreground font-semibold shadow-xs'
+                    : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/50',
                 )}
               >
-                <span className="text-sm font-medium">{claim.label}</span>
-                {selected && <CheckCircle2 className="h-4 w-4 text-cyan-200" />}
+                <span className="text-sm">{claim.label}</span>
+                {selected && <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />}
               </button>
             );
           })}
         </div>
 
         {selectedClaims.length > 0 && (
-          <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-300">
-            <span className="font-semibold text-white">{selectedClaims.length}</span> claim{selectedClaims.length !== 1 && 's'} selected
+          <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3.5 text-xs text-foreground font-medium">
+            <span className="font-bold text-teal-600 dark:text-teal-400">{selectedClaims.length}</span> claim{selectedClaims.length !== 1 && 's'} selected
           </div>
         )}
       </Panel>
 
-      {/* ── Section 4: Generate Proof ──────────────────────────────── */}
+      {/* ── Step 4: Generate Proof ──────────────────────────────── */}
       <Panel
         title="Generate Proof"
-        description="Generate a zero-knowledge proof for your selected claims."
+        description="Compute a zero-knowledge proof for your selected claims."
         icon={Zap}
       >
-        <div className="mt-0">
+        <div>
           <Button
             disabled={!documentUploaded || !hasSelectedClaims || generating}
             onClick={generateProof}
-            className="w-full justify-center sm:w-auto"
+            className="w-full justify-center sm:w-auto bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
           >
             {generating ? (
               <>
@@ -649,54 +630,52 @@ export default function GenerateProof() {
         </div>
 
         {!documentUploaded && (
-          <p className="mt-3 text-xs text-slate-500">Upload a document first to proceed.</p>
+          <p className="mt-2.5 text-xs text-muted-foreground">Upload a document first to proceed.</p>
         )}
         {documentUploaded && !hasSelectedClaims && (
-          <p className="mt-3 text-xs text-slate-500">Select at least one claim to proceed.</p>
+          <p className="mt-2.5 text-xs text-muted-foreground">Select at least one claim to proceed.</p>
         )}
 
-        {/* Generating progress sequence */}
         {generating && (
-          <div className="mt-4 rounded-[1.25rem] border border-cyan-400/20 bg-cyan-400/10 p-4 space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-emerald-300 font-medium">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Document processed</span>
+          <div className="mt-4 rounded-xl border border-teal-500/30 bg-teal-500/5 p-4 space-y-2 text-xs">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Preparing document attributes</span>
             </div>
-            <div className="flex items-center gap-2 text-emerald-300 font-medium">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Claims selected ({selectedClaims.length})</span>
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Generating witness</span>
             </div>
-            <div className="flex items-center gap-2 text-cyan-200 font-medium">
-              <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
-              <span>Generating zero-knowledge proof…</span>
+            <div className="flex items-center gap-2 text-teal-600 dark:text-teal-300 font-medium">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Creating zero-knowledge proof…</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-400">
-              <span className="h-2 w-2 rounded-full bg-slate-500 ml-1 mr-1" />
-              <span>Verifying generated proof…</span>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground ml-1 mr-1" />
+              <span>Finalizing proof package</span>
             </div>
           </div>
         )}
 
-        {/* Generate success */}
         {generateResult && (
-          <div className="mt-4 rounded-[1.25rem] border border-emerald-400/20 bg-emerald-400/10 p-4">
-            <div className="flex items-center gap-2 text-base font-semibold text-emerald-200">
-              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
-              ✓ PROOF GENERATED
+          <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+            <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              Proof Generated Successfully
             </div>
-            <p className="mt-1 text-sm text-emerald-200/80">
-              Your privacy-preserving proof has been successfully created.
+            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
+              Your document has been converted into a zero-knowledge proof.
             </p>
-            <div className="mt-4 border-t border-emerald-400/20 pt-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300/80 mb-2">
-                Verified Claims:
+            <div className="mt-4 border-t border-emerald-500/20 pt-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-2">
+                Included Claims:
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {generateResult.claims.map((claimId) => {
                   const label = ZKP_CLAIM_LABELS[claimId] ?? claimOptions.find((c) => c.id === claimId)?.label ?? claimId;
                   return (
-                    <div key={claimId} className="flex items-center gap-2 text-sm text-emerald-100">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                    <div key={claimId} className="flex items-center gap-2 text-xs font-medium text-emerald-900 dark:text-emerald-100">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                       <span>{label}</span>
                     </div>
                   );
@@ -706,35 +685,34 @@ export default function GenerateProof() {
           </div>
         )}
 
-        {/* Generate error */}
         {generateError && (
-          <div className="mt-4 flex items-start gap-3 rounded-[1.25rem] border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-700 dark:text-red-300">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{generateError}</span>
           </div>
         )}
       </Panel>
 
-      {/* ── Section 5: Download Proof Package ────────────────────────── */}
+      {/* ── Step 5: Download Proof Package ────────────────────────── */}
       <Panel
         title="Download Proof Package"
-        description="Your proof package can be shared with the party requesting verification."
+        description="Share these proof files with the verifier."
         icon={Download}
       >
         <div className="space-y-3">
           {[
-            { filename: 'proof.json', label: 'Zero-Knowledge Proof (proof.json)', desc: 'Cryptographic proof file' },
-            { filename: 'public.json', label: 'Public Signals (public.json)', desc: 'Public claim parameters' }
+            { filename: 'proof.json', label: 'Proof', desc: 'proof.json (Cryptographic proof file)' },
+            { filename: 'public.json', label: 'Public Signals', desc: 'public.json (Public claim parameters)' }
           ].map((item) => (
             <div
               key={item.filename}
-              className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-border bg-card p-3.5 shadow-xs"
             >
               <div className="flex items-center gap-3">
-                <Download className="h-4 w-4 text-slate-500" />
+                <Download className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm font-medium text-white">{item.label}</span>
-                  <p className="text-xs text-slate-400">{item.desc}</p>
+                  <span className="text-sm font-semibold text-foreground">{item.label}</span>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
               </div>
               <Button
@@ -757,14 +735,14 @@ export default function GenerateProof() {
         </div>
 
         {selectedClaims.length > 0 && (
-          <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/40 p-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Included Claims</p>
+          <div className="mt-4 rounded-xl border border-border bg-muted/40 p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Included Claims</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {selectedClaims.map((claimId) => {
                 const claim = claimOptions.find((c) => c.id === claimId);
                 return (
-                  <div key={claimId} className="flex items-center gap-2 text-sm text-slate-300">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-cyan-300" />
+                  <div key={claimId} className="flex items-center gap-2 text-xs font-medium text-foreground">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" />
                     <span>{claim?.label}</span>
                   </div>
                 );
@@ -773,9 +751,9 @@ export default function GenerateProof() {
           </div>
         )}
 
-        <div className="mt-4 rounded-[1rem] border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-xs leading-6 text-cyan-50">
-          <ShieldCheck className="mb-1 mr-2 inline-block h-3.5 w-3.5" />
-          Your proof package can be shared with the party requesting verification.
+        <div className="mt-4 rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6">
+          <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
+          Share these proof files with the verifier.
         </div>
       </Panel>
     </div>

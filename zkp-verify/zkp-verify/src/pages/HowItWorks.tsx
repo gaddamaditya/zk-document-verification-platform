@@ -1,65 +1,60 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, FileScan, KeyRound, LockKeyhole, ScrollText, Sigma, Workflow } from 'lucide-react';
+import { ArrowRight, FileScan, KeyRound, LockKeyhole, ScrollText, ShieldCheck, Workflow } from 'lucide-react';
 
-import {
-  ConceptCard,
-  FlowArrow,
-  SummaryCard,
-  WorkflowActionButton,
-  WorkflowSectionHeading,
-} from '@/components/workflow/WorkflowSections';
+import { Button } from '@/components/ui/button';
+import { WorkflowSectionHeading } from '@/components/workflow/WorkflowSections';
 import { cryptographicConcepts, workflowStages, workflowSummary } from '@/content/workflow';
 
 export default function HowItWorks() {
   return (
-    <div className="space-y-24 pb-20">
+    <div className="space-y-16 pb-20 max-w-5xl mx-auto">
       {/* Hero */}
-      <section className="max-w-5xl">
+      <section className="space-y-4">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200"
+          className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300"
         >
-          <span className="h-2 w-2 rounded-full bg-cyan-300" />
+          <Workflow className="h-3.5 w-3.5" />
           Technical Overview
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl"
+          className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
         >
           How It Works
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mt-4 max-w-4xl text-base leading-8 text-slate-400 sm:text-lg"
+          className="text-base leading-7 text-muted-foreground max-w-3xl"
         >
-          This page explains the technical pipeline behind privacy-preserving document verification using Zero-Knowledge Proofs — from document intake to proof verification.
+          This page explains the technical pipeline behind privacy-preserving document verification using Zero-Knowledge Proofs — from document intake to proof generation.
         </motion.p>
       </section>
 
       {/* ── Plain-language explanation ────────────────────────────── */}
-      <section className="grid gap-8 lg:grid-cols-2 lg:items-start">
+      <section className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl"
+          className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4"
         >
-          <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+          <h2 className="text-2xl font-bold text-foreground">
             What are Zero-Knowledge Proofs?
           </h2>
-          <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
+          <div className="space-y-3 text-sm leading-7 text-muted-foreground">
             <p>
-              A <span className="font-semibold text-white">Zero-Knowledge Proof (ZKP)</span> is a cryptographic method that allows one party (the prover) to prove a statement is true to another party (the verifier) — <span className="text-cyan-200">without revealing any underlying data</span>.
+              A <span className="font-semibold text-foreground">Zero-Knowledge Proof (ZKP)</span> is a cryptographic method that allows one party (the prover) to prove a statement is true to another party (the verifier) — <span className="text-teal-600 dark:text-teal-400 font-medium">without revealing any underlying data</span>.
             </p>
             <p>
-              In the context of document verification, this means you can prove facts like <em>"I am over 18"</em> or <em>"I hold a valid degree"</em> without ever sharing the original document with the verifier.
+              In the context of document verification, this means you can prove facts like <em>"I am over 18"</em> or <em>"I hold a valid degree"</em> without ever sharing the original document.
             </p>
             <p>
               The verifier only receives a compact mathematical proof and can confirm the claim is valid — they never see your name, date of birth, address, or any other personal information.
@@ -68,28 +63,28 @@ export default function HowItWorks() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.08 }}
-          className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl"
+          className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4"
         >
-          <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-            The User Journey
+          <h2 className="text-2xl font-bold text-foreground">
+            The Prover Journey
           </h2>
-          <div className="mt-5 space-y-5">
-            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Prover Journey</p>
-              <ol className="mt-3 space-y-2 text-sm text-cyan-50">
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">1.</span> Upload your document</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">2.</span> Automatic OCR detection</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">3.</span> Select claims to prove</li>
-                <li className="flex items-start gap-2"><span className="mt-0.5 font-semibold text-cyan-200">4.</span> Generate & download proof package</li>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">Prover Workflow</p>
+              <ol className="mt-3 space-y-2 text-sm text-foreground">
+                <li className="flex items-start gap-2"><span className="font-bold text-teal-500">1.</span> Upload your document</li>
+                <li className="flex items-start gap-2"><span className="font-bold text-teal-500">2.</span> Automatic OCR detection & attributes masking</li>
+                <li className="flex items-start gap-2"><span className="font-bold text-teal-500">3.</span> Select claims to prove</li>
+                <li className="flex items-start gap-2"><span className="font-bold text-teal-500">4.</span> Generate & download proof package</li>
               </ol>
             </div>
-            <div className="rounded-xl border border-purple-400/20 bg-purple-400/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">Privacy Guarantee</p>
-              <p className="mt-2 text-sm leading-6 text-purple-100">
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Privacy Guarantee</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Your original document stays private on your device. Only compact mathematical proofs are generated for selective disclosure.
               </p>
             </div>
@@ -98,144 +93,38 @@ export default function HowItWorks() {
       </section>
 
       {/* ── Technical Pipeline ────────────────────────────────────── */}
-      <section className="space-y-8">
+      <section className="space-y-6">
         <WorkflowSectionHeading
           eyebrow="Technical Pipeline"
-          title="Behind the scenes: from document to verifiable proof"
-          description="The following stages describe the technical processing pipeline that transforms a document into a zero-knowledge proof. These details are hidden from the primary user workflow but are included here for research demonstration."
+          title="From Local Intake to Cryptographic Evidence"
+          description="A breakdown of how documents are converted into zero-knowledge proofs."
         />
 
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-          <div className="grid gap-4 lg:grid-cols-7 lg:items-stretch">
-            {workflowStages.map((stage, index) => {
-              const Icon = stage.icon;
-
-              return (
-                <motion.div
-                  key={stage.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.07 }}
-                  className="flex flex-col"
-                >
-                  <div className="flex-1 rounded-[1.25rem] border border-white/10 bg-slate-950/40 p-4 text-center">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">{stage.step}</p>
-                    <h3 className="mt-2 text-base font-semibold text-white">{stage.title}</h3>
-                    <p className="mt-3 text-xs leading-6 text-slate-400">{stage.description}</p>
-                  </div>
-                  {index < workflowStages.length - 1 && (
-                    <div className="hidden lg:flex">
-                      <FlowArrow />
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm leading-7 text-cyan-50">
-            The pipeline above runs behind the scenes. Users interact only with a simple Upload → Select Claims → Generate Proof → Download workflow.
-          </div>
-        </div>
-      </section>
-
-      {/* ── Cryptographic Concepts ────────────────────────────────── */}
-      <section className="space-y-8">
-        <WorkflowSectionHeading
-          eyebrow="Cryptographic concepts"
-          title="Building blocks of zero-knowledge document verification"
-          description="These are the core technologies and primitives used in the proof pipeline."
-          centered
-        />
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {cryptographicConcepts.map((concept, index) => (
-            <motion.div
-              key={concept.title}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <ConceptCard title={concept.title} description={concept.description} icon={concept.icon} />
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Summary ──────────────────────────────────────────────── */}
-      <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <SummaryCard
-          title="Proof lifecycle summary"
-          description="The proof workflow separates private data from public evidence. The document is read, attributes are extracted, the circuit receives public and private inputs, witness generation happens locally, Groth16 produces the proof, and the verifier checks the proof against the public inputs and key."
-        >
-          <ul className="space-y-3 text-sm leading-7 text-slate-300">
-            {workflowSummary.map((item) => (
-              <li key={item} className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-cyan-300" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </SummaryCard>
-
-        <div className="space-y-6 rounded-[1.75rem] border border-white/10 bg-slate-950/30 p-6 backdrop-blur-xl">
-          <h3 className="text-xl font-semibold text-white">Public vs private inputs</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
-                <ScrollText className="h-4 w-4" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {workflowStages.map((stage) => (
+            <div key={stage.id} className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-500/10 text-xs font-bold text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                  {stage.id}
+                </span>
+                <h3 className="text-lg font-bold text-foreground">{stage.title}</h3>
               </div>
-              <h4 className="text-sm font-semibold text-white">Public Inputs</h4>
-              <p className="mt-2 text-xs leading-6 text-slate-400">Visible to the verifier and used to validate the claim.</p>
+              <p className="text-sm leading-7 text-muted-foreground">{stage.description}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/10 text-purple-200">
-                <KeyRound className="h-4 w-4" />
-              </div>
-              <h4 className="text-sm font-semibold text-white">Private Inputs</h4>
-              <p className="mt-2 text-xs leading-6 text-slate-400">Remain hidden in the witness and never get disclosed directly.</p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-purple-400/20 bg-purple-400/10 p-5 text-sm leading-7 text-purple-50">
-            Poseidon Hash is commonly used inside zero-knowledge circuits to hash and compare values efficiently without leaving the ZK-friendly arithmetic domain.
-          </div>
-        </div>
-      </section>
-
-      {/* ── Tool reference ───────────────────────────────────────── */}
-      <section className="space-y-8">
-        <WorkflowSectionHeading
-          eyebrow="Toolchain"
-          title="The key tools used in the proof pipeline"
-          description="Each tool plays a specific role in the journey from document to verifiable proof."
-          centered
-        />
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            { label: 'OCR', description: 'Read the document and convert it into machine-readable text.', icon: FileScan },
-            { label: 'Circom', description: 'Encode claim logic as an arithmetic circuit.', icon: Workflow },
-            { label: 'snarkjs', description: 'Generate the witness and coordinate proof tooling.', icon: KeyRound },
-            { label: 'Groth16', description: 'Produce a succinct proof that can be verified efficiently.', icon: LockKeyhole },
-          ].map((item) => (
-            <ConceptCard key={item.label} title={item.label} description={item.description} icon={item.icon} />
           ))}
         </div>
       </section>
 
       {/* ── CTA banner ───────────────────────────────────────────── */}
-      <section className="flex flex-col gap-4 rounded-[1.75rem] border border-cyan-400/20 bg-cyan-400/10 px-6 py-8 text-sm leading-7 text-cyan-50 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-        <p>
-          Ready to experience privacy-preserving document verification? Generate a proof now.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <WorkflowActionButton href="/generate-proof" label="Generate Proof" />
+      <section className="flex flex-col gap-4 rounded-2xl border border-teal-500/30 bg-teal-500/5 p-8 text-sm leading-7 text-foreground sm:flex-row sm:items-center sm:justify-between shadow-xs">
+        <div>
+          <h3 className="text-lg font-bold text-foreground">Ready to test privacy-preserving verification?</h3>
+          <p className="text-muted-foreground text-xs mt-1">Start by proving a claim or verifying a proof package.</p>
         </div>
+        <Button href="/" className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600 shrink-0">
+          Go to ZKVerify Platform
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
       </section>
     </div>
   );

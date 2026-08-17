@@ -1,5 +1,4 @@
 import { ElementType, ReactNode } from 'react';
-
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
@@ -34,42 +33,41 @@ export function LandingHero({
   infoCards?: HeroInfoCard[];
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 px-6 py-16 shadow-[0_24px_100px_rgba(2,6,23,0.55)] sm:px-10 sm:py-20">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent)]" />
+    <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-sm sm:p-12 md:p-16">
       <div className="relative grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="max-w-3xl">
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-teal-700 dark:text-teal-300"
           >
-            <span className="h-2 w-2 rounded-full bg-cyan-300" />
+            <span className="h-2 w-2 rounded-full bg-teal-500" />
             {eyebrow}
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-7xl"
+            className="max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
           >
             {title}
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 }}
-            className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg"
+            transition={{ delay: 0.1 }}
+            className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg"
           >
             {subtitle}
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.18 }}
-            className="mt-10 flex flex-col gap-4 sm:flex-row"
+            transition={{ delay: 0.15 }}
+            className="mt-8 flex flex-col gap-4 sm:flex-row"
           >
             {actions.map((action) => (
               <Button
@@ -87,51 +85,44 @@ export function LandingHero({
         </div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.14 }}
-          className="grid gap-4 rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-5 backdrop-blur-xl sm:grid-cols-2"
+          transition={{ delay: 0.12 }}
+          className="grid gap-4 rounded-2xl border border-border bg-muted/40 p-6 sm:grid-cols-2"
         >
           {infoCards && infoCards.length > 0 ? (
-            infoCards.map((card) => {
-              const accentClasses =
-                card.accent === 'purple'
-                  ? 'border-purple-400/20 bg-purple-400/10 text-purple-50'
-                  : 'border-cyan-400/20 bg-cyan-400/10 text-cyan-50';
-
-              return (
-                <div
-                  key={card.title}
-                  className={cn('rounded-2xl border p-5 sm:col-span-2', accentClasses)}
-                >
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em]">
-                    {card.title}
-                  </p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {card.items.map((item) => (
-                      <div
-                        key={item}
-                        className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs leading-6"
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </div>
+            infoCards.map((card) => (
+              <div
+                key={card.title}
+                className="rounded-xl border border-border bg-card p-4 sm:col-span-2 shadow-xs"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                  {card.title}
+                </p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {card.items.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs text-foreground font-medium"
+                    >
+                      {item}
+                    </div>
+                  ))}
                 </div>
-              );
-            })
+              </div>
+            ))
           ) : (
             stats.map((stat, index) => (
               <div
                 key={`${stat.label}-${index}`}
-                className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                className="rounded-xl border border-border bg-card p-4 shadow-xs"
               >
-                <p className="text-3xl font-semibold text-white">{stat.value}</p>
-                <p className="mt-2 text-sm text-slate-400">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
               </div>
             ))
           )}
-          <div className="sm:col-span-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm leading-7 text-cyan-50">
+          <div className="sm:col-span-2 rounded-xl border border-teal-500/20 bg-teal-500/5 p-4 text-xs leading-6 text-foreground font-medium">
             This platform is designed for privacy-preserving document verification: proving facts securely without sharing your original documents.
           </div>
         </motion.div>
@@ -157,7 +148,7 @@ export function SectionHeading({
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200"
+        className="text-xs font-semibold uppercase tracking-widest text-teal-600 dark:text-teal-400"
       >
         {eyebrow}
       </motion.p>
@@ -166,7 +157,7 @@ export function SectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.05 }}
-        className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+        className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
       >
         {title}
       </motion.h2>
@@ -175,7 +166,7 @@ export function SectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.1 }}
-        className="mt-4 text-base leading-8 text-slate-400"
+        className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base"
       >
         {description}
       </motion.p>
@@ -198,66 +189,21 @@ export function GlassCard({
 }) {
   return (
     <motion.div
-      whileHover={{ y: -6 }}
+      whileHover={{ y: -4 }}
       className={cn(
-        'group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl transition-transform',
+        'group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all',
         className,
       )}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.12),transparent_32%)] opacity-70" />
       <div className="relative">
-        <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40 text-cyan-300">
+        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/60 text-primary">
           {icon}
         </div>
-        <h3 className="text-xl font-semibold text-white">{title}</h3>
-        <p className="mt-3 text-sm leading-7 text-slate-400">{description}</p>
-        {children && <div className="mt-5">{children}</div>}
+        <h3 className="text-xl font-bold text-foreground">{title}</h3>
+        <p className="mt-2 text-sm leading-7 text-muted-foreground">{description}</p>
+        {children && <div className="mt-4">{children}</div>}
       </div>
     </motion.div>
-  );
-}
-
-export function ComparisonTable({
-  rows,
-}: {
-  rows: Array<{ label: string; traditional: string; zkp: string }>;
-}) {
-  return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-      <div className="grid grid-cols-[1.1fr_1fr_1fr] border-b border-white/10 bg-slate-950/40 px-5 py-4 text-sm font-semibold text-slate-200">
-        <div>Verification Aspect</div>
-        <div className="text-slate-400">Traditional Flow</div>
-        <div className="text-cyan-200">Zero-Knowledge Flow</div>
-      </div>
-      <div className="divide-y divide-white/10">
-        {rows.map((row) => (
-          <div key={row.label} className="grid grid-cols-[1.1fr_1fr_1fr] gap-4 px-5 py-5 text-sm leading-7">
-            <div className="font-medium text-white">{row.label}</div>
-            <div className="text-slate-400">{row.traditional}</div>
-            <div className="text-cyan-100">{row.zkp}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function WorkflowTimeline({
-  steps,
-}: {
-  steps: Array<{ number: string; title: string; description: string }>;
-}) {
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {steps.map((step) => (
-        <GlassCard
-          key={step.number}
-          icon={<span className="text-sm font-semibold text-white">{step.number}</span>}
-          title={step.title}
-          description={step.description}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -283,7 +229,7 @@ export function ActionCard({
       icon={<Icon className="h-5 w-5" />}
       title={title}
       description={description}
-      className={cn('h-full', featured && 'border-cyan-400/35 bg-cyan-400/10 ring-1 ring-cyan-400/25')}
+      className={cn('h-full', featured && 'border-teal-500/40 bg-teal-500/5')}
     >
       <Button href={href} variant={featured ? 'default' : 'outline'} className="w-full justify-between">
         {cta}
