@@ -23,7 +23,7 @@ export function WorkflowSectionHeading({
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200"
+        className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-400"
       >
         {eyebrow}
       </motion.p>
@@ -32,7 +32,7 @@ export function WorkflowSectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.05 }}
-        className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+        className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
       >
         {title}
       </motion.h2>
@@ -41,7 +41,7 @@ export function WorkflowSectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.1 }}
-        className="mt-4 text-base leading-8 text-slate-400"
+        className="mt-3 text-sm leading-7 text-muted-foreground"
       >
         {description}
       </motion.p>
@@ -60,16 +60,15 @@ export function ConceptCard({
 }) {
   return (
     <motion.div
-      whileHover={{ y: -6 }}
-      className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl"
+      whileHover={{ y: -3 }}
+      className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-xs transition-all"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.12),transparent_32%)] opacity-70" />
       <div className="relative">
-        <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40 text-cyan-300">
+        <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/60 text-teal-600 dark:text-teal-400">
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="text-xl font-semibold text-white">{title}</h3>
-        <p className="mt-3 text-sm leading-7 text-slate-400">{description}</p>
+        <h3 className="text-lg font-bold text-foreground">{title}</h3>
+        <p className="mt-2 text-xs leading-6 text-muted-foreground">{description}</p>
       </div>
     </motion.div>
   );
@@ -88,21 +87,19 @@ export function WorkflowNode({
   icon: ElementType;
   accent?: 'cyan' | 'purple';
 }) {
-  const accentClass = accent === 'cyan' ? 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200' : 'border-purple-400/20 bg-purple-400/10 text-purple-200';
-
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl"
+      whileHover={{ y: -3 }}
+      className="rounded-xl border border-border bg-card p-6 shadow-xs transition-all"
     >
       <div className="flex items-start gap-4">
-        <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border', accentClass)}>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Step {step}</p>
-          <h3 className="mt-1 text-xl font-semibold text-white">{title}</h3>
-          <p className="mt-3 text-sm leading-7 text-slate-400">{description}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Step {step}</p>
+          <h3 className="mt-1 text-base font-bold text-foreground">{title}</h3>
+          <p className="mt-2 text-xs leading-6 text-muted-foreground">{description}</p>
         </div>
       </div>
     </motion.div>
@@ -111,8 +108,8 @@ export function WorkflowNode({
 
 export function FlowArrow() {
   return (
-    <div className="flex items-center justify-center py-2 text-cyan-200">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/10">
+    <div className="flex items-center justify-center py-2 text-teal-600 dark:text-teal-400">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40">
         <ArrowRight className="h-4 w-4" />
       </div>
     </div>
@@ -129,10 +126,10 @@ export function SummaryCard({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_18px_70px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-      <h3 className="text-xl font-semibold text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-7 text-slate-400">{description}</p>
-      {children && <div className="mt-5">{children}</div>}
+    <div className="rounded-xl border border-border bg-card p-6 shadow-xs">
+      <h3 className="text-lg font-bold text-foreground">{title}</h3>
+      <p className="mt-2 text-xs leading-6 text-muted-foreground">{description}</p>
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }
@@ -145,18 +142,18 @@ export function ConceptLegend({
   items: Array<{ label: string; description: string; icon: ElementType }>;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/30 p-6 backdrop-blur-xl">
-      <h3 className="text-xl font-semibold text-white">{title}</h3>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="rounded-xl border border-border bg-card p-6 shadow-xs">
+      <h3 className="text-lg font-bold text-foreground">{title}</h3>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
+            <div key={item.label} className="rounded-lg border border-border bg-muted/40 p-4">
+              <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-teal-600 dark:text-teal-400">
                 <Icon className="h-4 w-4" />
               </div>
-              <h4 className="text-sm font-semibold text-white">{item.label}</h4>
-              <p className="mt-2 text-xs leading-6 text-slate-400">{item.description}</p>
+              <h4 className="text-sm font-bold text-foreground">{item.label}</h4>
+              <p className="mt-1.5 text-xs leading-6 text-muted-foreground">{item.description}</p>
             </div>
           );
         })}
