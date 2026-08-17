@@ -320,6 +320,7 @@ export default function GenerateProof() {
 
     try {
       const url = `${API_BASE_URL}/api/generate-proof`;
+      console.log(`[GenerateProof] Submitting generate-proof request to: ${url}`);
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -338,8 +339,10 @@ export default function GenerateProof() {
 
       setGenerateResult(data);
     } catch (err: unknown) {
+      const url = `${API_BASE_URL}/api/generate-proof`;
       const message = err instanceof Error ? err.message : 'Unknown error';
-      setGenerateError(`Network error: ${message}`);
+      console.error(`[GenerateProof] Fetch failed for ${url}:`, err);
+      setGenerateError(`Network error: Unable to reach backend at ${url} (${message}).`);
     } finally {
       setGenerating(false);
     }
