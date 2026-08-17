@@ -35,6 +35,8 @@ const VKEY_TO_CLAIMS = {
     "verification_key_GradeVerifier.json": ["GRADE"],
     "verification_key_GrandTotalVerifier.json": ["GRAND_TOTAL"],
     "verification_key_MultiAttributeVerifier.json": ["NAME", "AGE_18_PLUS", "GENDER"],
+    "verification_key_AadhaarMultiAttributeVerifier.json": ["NAME", "DOB", "AGE_18_PLUS", "GENDER"],
+    "verification_key_MarksheetMultiAttributeVerifier.json": ["STUDENT_NAME", "GENDER", "RESULT", "GRADE", "GRAND_TOTAL", "CGPA"],
 };
 
 // Set up multer disk storage
@@ -122,35 +124,19 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
             candidates.push({ name: "Uploaded Key", path: uploadedVkeyPath, claims: [] });
         }
 
-        // 2. Read claims_metadata.json if present to prioritize expected key
+        // 2. Read claims_metadata.json if present
+        let metaClaims = [];
         const metaPath = path.join(ZKP_PROOFS_DIR, "claims_metadata.json");
         if (fs.existsSync(metaPath)) {
             try {
                 const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-                const claims = meta.claims || [];
-                let keyFile = null;
-                if (claims.length === 1) {
-                    const c = claims[0];
-                    if (c === "NAME") keyFile = "verification_key_NameVerifier.json";
-                    else if (c === "AGE_18_PLUS") keyFile = "verification_key_AgeVerifier.json";
-                    else if (c === "GENDER") keyFile = "verification_key_GenderVerifier.json";
-                    else if (c === "RESULT") keyFile = "verification_key_ResultVerifier.json";
-                    else if (c === "STUDENT_NAME") keyFile = "verification_key_StudentNameVerifier.json";
-                    else if (c === "GRADE") keyFile = "verification_key_GradeVerifier.json";
-                    else if (c === "GRAND_TOTAL") keyFile = "verification_key_GrandTotalVerifier.json";
-                } else if (claims.length === 3 && claims.includes("NAME") && claims.includes("AGE_18_PLUS") && claims.includes("GENDER")) {
-                    keyFile = "verification_key_MultiAttributeVerifier.json";
-                }
-                if (keyFile) {
-                    const fullP = path.join(ZKP_ENGINE_DIR, keyFile);
-                    if (fs.existsSync(fullP)) {
-                        candidates.push({ name: keyFile, path: fullP, claims });
-                    }
+                if (Array.isArray(meta.claims) && meta.claims.length > 0) {
+                    metaClaims = meta.claims;
                 }
             } catch (mErr) {}
         }
 
-        // 3. Add all available verification_key_*.json files as candidates
+        // Add key candidates
         const availableKeys = fs.readdirSync(ZKP_ENGINE_DIR).filter(f => f.startsWith("verification_key_") && f.endsWith(".json"));
         for (const kf of availableKeys) {
             const fullP = path.join(ZKP_ENGINE_DIR, kf);
@@ -179,11 +165,11 @@ router.post("/", attachVerifyId, uploadFields, async (req, res) => {
         }
 
         if (verifiedMatch) {
-            const claims = verifiedMatch.claims.length > 0 ? verifiedMatch.claims : (VKEY_TO_CLAIMS[verifiedMatch.name] || []);
+            const finalClaims = metaClaims.length > 0 ? metaClaims : (verifiedMatch.claims.length > 0 ? verifiedMatch.claims : VKEY_TO_CLAIMS[verifiedMatch.name] || []);
             return res.status(200).json({
                 success: true,
                 verified: true,
-                claims,
+                claims: finalClaims,
                 message: "Proof verified successfully"
             });
         } else {

@@ -23,15 +23,22 @@ const AADHAAR_CLAIMS = [
   { id: 'dob_verification', label: 'Verify Date of Birth', description: 'Prove birth date record validity.', icon: ShieldCheck, attrKey: 'dob' },
   { id: 'age_verification', label: 'Verify Age ≥ 18', description: 'Prove age is 18+ without disclosing birth date.', icon: ShieldCheck, attrKey: 'dob' },
   { id: 'gender_verification', label: 'Verify Gender', description: 'Prove gender record validity.', icon: ShieldCheck, attrKey: 'gender' },
+  { id: 'document_number_verification', label: 'Verify Aadhaar Number', description: 'Prove document ID number validity.', icon: ShieldCheck, attrKey: 'aadhaarNumber' },
+  { id: 'address_verification', label: 'Verify Address', description: 'Prove address record validity.', icon: ShieldCheck, attrKey: 'address' },
 ];
 
 const MARKSHEET_CLAIMS = [
   { id: 'degree_verification', label: 'Verify Student Name', description: 'Prove student name on academic transcript.', icon: CheckCircle2, attrKey: 'studentName' },
+  { id: 'dob_verification', label: 'Verify Date of Birth', description: 'Prove birth date on academic record.', icon: CheckCircle2, attrKey: 'dob' },
   { id: 'gender_verification', label: 'Verify Gender', description: 'Prove gender field validity.', icon: CheckCircle2, attrKey: 'gender' },
   { id: 'result_verification', label: 'Verify Result', description: 'Prove passing qualification status.', icon: CheckCircle2, attrKey: 'result' },
   { id: 'cgpa_verification', label: 'Verify Grade', description: 'Prove grade eligibility status.', icon: CheckCircle2, attrKey: 'grade' },
   { id: 'certificate_authenticity', label: 'Verify Grand Total', description: 'Prove total score validity.', icon: CheckCircle2, attrKey: 'grandTotal' },
+  { id: 'percentage_verification', label: 'Verify Percentage', description: 'Prove percentage marks score.', icon: CheckCircle2, attrKey: 'grandTotal' },
   { id: 'cgpa_attribute_verification', label: 'Verify CGPA', description: 'Prove CGPA score requirement.', icon: CheckCircle2, attrKey: 'cgpa' },
+  { id: 'qualification_verification', label: 'Verify Degree / Qualification', description: 'Prove degree or course qualification.', icon: CheckCircle2, attrKey: 'result' },
+  { id: 'institution_verification', label: 'Verify Institution', description: 'Prove issuing university or board.', icon: CheckCircle2, attrKey: 'studentName' },
+  { id: 'roll_number_verification', label: 'Verify Roll Number', description: 'Prove student roll or registration number.', icon: CheckCircle2, attrKey: 'documentNumber' },
 ];
 
 /** Map ZKP engine claim names back to human-readable labels */
@@ -40,11 +47,17 @@ const ZKP_CLAIM_LABELS: Record<string, string> = {
   DOB: 'Date of Birth Verification',
   AGE_18_PLUS: 'Age ≥ 18 Verification',
   GENDER: 'Gender Verification',
+  DOCUMENT_NUMBER: 'Document Number Verification',
+  ADDRESS: 'Address Verification',
   STUDENT_NAME: 'Student Name Verification',
   RESULT: 'Academic Result Verification',
   GRADE: 'Grade Verification',
   GRAND_TOTAL: 'Grand Total Verification',
+  PERCENTAGE: 'Percentage Verification',
   CGPA: 'CGPA Verification',
+  DEGREE: 'Degree / Qualification Verification',
+  INSTITUTION: 'Institution Verification',
+  ROLL_NUMBER: 'Roll Number Verification',
   MULTI_ATTRIBUTE: 'Multi-Attribute Verification',
   AADHAAR_MULTI_ATTRIBUTE: 'Aadhaar Multi-Attribute Verification',
   MARKSHEET_MULTI_ATTRIBUTE: 'Marksheet Multi-Attribute Verification',
@@ -94,8 +107,6 @@ interface OcrResult {
   documentType: string;
   attributes: Record<string, string>;
 }
-
-// ── Privacy masking utilities ──────────────────────────────────
 
 const FIELD_LABELS: Record<string, string> = {
   name: 'Name',
@@ -210,29 +221,8 @@ export default function GenerateProof() {
       formData.append('document', selectedFile);
 
       const url = `${API_BASE_URL}/api/upload`;
-      console.log(`[GenerateProof] Upload URL: ${url}`);
-
-      let res: Response;
-      try {
-        res = await fetch(url, {
-          method: 'POST',
-          body: formData,
-        });
-      } catch (networkErr) {
-        const message = networkErr instanceof Error ? networkErr.message : 'Unknown error';
-        setUploadError(
-          `Could not connect to the server. Make sure the backend is running at ${API_BASE_URL}. (${message})`
-        );
-        return;
-      }
-
-      let data: Record<string, unknown>;
-      try {
-        data = await res.json();
-      } catch {
-        setUploadError(`Invalid response from server (HTTP ${res.status}).`);
-        return;
-      }
+      let res = await fetch(url, { method: 'POST', body: formData });
+      let data = await res.json();
 
       if (!res.ok) {
         setUploadError((data.error as string) || `Upload failed (HTTP ${res.status})`);
@@ -261,7 +251,6 @@ export default function GenerateProof() {
 
     try {
       const url = `${API_BASE_URL}/api/ocr`;
-      console.log(`[GenerateProof] OCR URL: ${url}`);
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -291,6 +280,29 @@ export default function GenerateProof() {
     );
   };
 
+  const isMarksheet = ocrData?.documentType === 'MARKSHEET';
+  const claimOptions = isMarksheet ? MARKSHEET_CLAIMS : AADHAAR_CLAIMS;
+
+  const isAttributeDetected = (attrKey: string) => {
+    if (!ocrData || !ocrData.attributes) return true;
+    const attrs = ocrData.attributes;
+    if (attrKey === 'studentName') return Boolean(attrs.studentName || attrs.name);
+    if (attrKey === 'cgpa') return Boolean(attrs.cgpa || attrs.grade);
+    if (attrKey === 'aadhaarNumber') return Boolean(attrs.aadhaarNumber || attrs.documentNumber);
+    return Boolean(attrs[attrKey]);
+  };
+
+  const selectAllClaims = () => {
+    const available = claimOptions
+      .filter((c) => isAttributeDetected(c.attrKey))
+      .map((c) => c.id);
+    setSelectedClaims(available);
+  };
+
+  const clearAllClaims = () => {
+    setSelectedClaims([]);
+  };
+
   const generateProof = async () => {
     if (!uploadResult || selectedClaims.length === 0) return;
     setGenerating(true);
@@ -299,7 +311,6 @@ export default function GenerateProof() {
 
     try {
       const url = `${API_BASE_URL}/api/generate-proof`;
-      console.log(`[GenerateProof] Generate Proof URL: ${url}`);
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -330,8 +341,6 @@ export default function GenerateProof() {
 
     try {
       const url = `${API_BASE_URL}/api/download/${filename}`;
-      console.log(`[GenerateProof] Downloading file from: ${url}`);
-
       const res = await fetch(url);
       if (!res.ok) {
         let errorMsg = `Download failed (HTTP ${res.status})`;
@@ -354,24 +363,10 @@ export default function GenerateProof() {
       window.URL.revokeObjectURL(objectUrl);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Download failed';
-      console.error('[GenerateProof] Download error:', err);
       alert(message);
     } finally {
       setDownloadingFile(null);
     }
-  };
-
-  // Determine active claim options based on detected document type
-  const isMarksheet = ocrData?.documentType === 'MARKSHEET';
-  const claimOptions = isMarksheet ? MARKSHEET_CLAIMS : AADHAAR_CLAIMS;
-
-  // Check whether an attribute is detected in OCR
-  const isAttributeDetected = (attrKey: string) => {
-    if (!ocrData || !ocrData.attributes) return true; // Default enabled before OCR completes
-    const attrs = ocrData.attributes;
-    if (attrKey === 'studentName') return Boolean(attrs.studentName || attrs.name);
-    if (attrKey === 'cgpa') return Boolean(attrs.cgpa || attrs.grade);
-    return Boolean(attrs[attrKey]);
   };
 
   // Derived state
@@ -600,10 +595,19 @@ export default function GenerateProof() {
         description="Select any combination of attributes to generate a unified zero-knowledge proof."
         icon={ShieldCheck}
       >
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
           <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
-            Detected Format: {ocrData?.documentType || 'DOCUMENT'}
+            Format: {ocrData?.documentType || 'DOCUMENT'}
           </span>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={selectAllClaims} className="h-7 px-2.5 text-xs">
+              Select All
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearAllClaims} className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground">
+              Clear All
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -729,7 +733,7 @@ export default function GenerateProof() {
             </p>
             <div className="mt-4 border-t border-emerald-500/20 pt-3">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-2">
-                Included Claims:
+                Verified Claims:
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {generateResult.claims.map((claimId) => {

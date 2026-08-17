@@ -24,7 +24,6 @@ const extractPDF = require(path.join(ZKP_ENGINE_DIR, "extractors", "pdfExtractor
 const extractImage = require(path.join(ZKP_ENGINE_DIR, "extractors", "imageExtractor"));
 const detectDocumentType = require(path.join(ZKP_ENGINE_DIR, "processors", "documentType"));
 const extractAttributes = require(path.join(ZKP_ENGINE_DIR, "processors", "attributeExtractor"));
-const generateClaims = require(path.join(ZKP_ENGINE_DIR, "processors", "claims", "claimGenerator"));
 const generateInput = require(path.join(ZKP_ENGINE_DIR, "processors", "inputGenerators", "universalInputGenerator"));
 const circuits = require(path.join(ZKP_ENGINE_DIR, "config", "circuits"));
 const buildCircuit = require(path.join(ZKP_ENGINE_DIR, "processors", "compiler", "buildCircuit"));
@@ -38,11 +37,17 @@ const CLAIM_MAP = {
     age_verification: "AGE_18_PLUS",
     gender_verification: "GENDER",
     dob_verification: "DOB",
+    document_number_verification: "DOCUMENT_NUMBER",
+    address_verification: "ADDRESS",
     result_verification: "RESULT",
     cgpa_verification: "GRADE",
     degree_verification: "STUDENT_NAME",
     certificate_authenticity: "GRAND_TOTAL",
+    percentage_verification: "PERCENTAGE",
     cgpa_attribute_verification: "CGPA",
+    qualification_verification: "DEGREE",
+    institution_verification: "INSTITUTION",
+    roll_number_verification: "ROLL_NUMBER",
 };
 
 // ─── Helper: find uploaded file by fileId ───────────────────────
@@ -143,7 +148,7 @@ router.post("/", async (req, res) => {
         let pipelineClaim;
         let circuitName;
 
-        if (documentType === "MARKSHEET" || normalizedClaims.some(c => ["STUDENT_NAME", "RESULT", "GRADE", "GRAND_TOTAL", "CGPA"].includes(c))) {
+        if (documentType === "MARKSHEET" || normalizedClaims.some(c => ["STUDENT_NAME", "RESULT", "GRADE", "GRAND_TOTAL", "PERCENTAGE", "CGPA", "DEGREE", "INSTITUTION", "ROLL_NUMBER"].includes(c))) {
             pipelineClaim = "MARKSHEET_MULTI_ATTRIBUTE";
             circuitName = "MarksheetMultiAttributeVerifier";
         } else {
