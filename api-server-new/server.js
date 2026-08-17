@@ -74,9 +74,20 @@ if (!global.ZKP_ENGINE_AVAILABLE) {
 }
 
 // ─── Start server ───────────────────────────────────────────────
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n  ✅ api-server-new running on http://localhost:${PORT}`);
   console.log(`  📋 Health:  GET  http://localhost:${PORT}/api/health`);
   console.log(`  📤 Upload:  POST http://localhost:${PORT}/api/upload\n`);
+});
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n  ❌ ERROR: Port ${PORT} is already in use.`);
+    console.error(`  Another instance of the API server or process is already running on port ${PORT}.`);
+    console.error(`  Please stop the existing server before starting a new instance.\n`);
+    process.exit(1);
+  } else {
+    console.error('\n  ❌ Server error:', err.message);
+    process.exit(1);
+  }
 });
