@@ -26,8 +26,8 @@ export function AppRoutes() {
       >
         <Routes location={location}>
           <Route path="/" element={<Home />} />
-          <Route path="/generate-proof" element={<GenerateProof />} />
-          <Route path="/verify-proof" element={<VerifyProof />} />
+          <Route path="/generate-proof" element={<Navigate to="/" replace />} />
+          <Route path="/verify-proof" element={<Navigate to="/" replace />} />
           <Route path="/how-zkp-works" element={<HowItWorks />} />
           <Route path="/how-it-works" element={<Navigate to="/how-zkp-works" replace />} />
           <Route path="/contact" element={<Contact />} />
