@@ -1,7 +1,7 @@
 export const navigationLinks = [
   { to: '/', label: 'Home' },
   { to: '/how-zkp-works', label: 'How It Works' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/contact', label: 'About & Contact' },
 ];
 
 export const footerHighlights = [
