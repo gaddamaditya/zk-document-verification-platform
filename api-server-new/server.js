@@ -22,8 +22,12 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // ─── Middleware ──────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
+app.use(express.json({ limit: '50mb' }));
 
 // ─── Routes ─────────────────────────────────────────────────────
 app.use('/api/health', healthRoutes);
@@ -63,7 +67,6 @@ console.log("API Server Started");
 console.log("-------------------------------------------------");
 console.log(`ZKP Engine Path:\n${zkpEnginePath}\n`);
 console.log(`ZKP Engine Exists:\n${zkpEngineExists}\n`);
-console.log("ZKP Engine node_modules check skipped\n");
 console.log(`Node Version:\n${process.version}\n`);
 console.log(`Current Working Directory:\n${process.cwd()}\n`);
 console.log(`ZKP Engine Available:\n${global.ZKP_ENGINE_AVAILABLE}`);
@@ -74,11 +77,11 @@ if (!global.ZKP_ENGINE_AVAILABLE) {
   console.warn("  Please make sure 'zk-document-verification' and its 'node_modules' exist.\n");
 }
 
-// ─── Start server ───────────────────────────────────────────────
-const server = app.listen(PORT, () => {
-  console.log(`\n  ✅ api-server-new running on http://localhost:${PORT}`);
-  console.log(`  📋 Health:  GET  http://localhost:${PORT}/api/health`);
-  console.log(`  📤 Upload:  POST http://localhost:${PORT}/api/upload\n`);
+// ─── Start server (Binds explicitly to 0.0.0.0) ──────────────────
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n  ✅ api-server-new running on http://0.0.0.0:${PORT}`);
+  console.log(`  📋 Health:  GET  http://0.0.0.0:${PORT}/api/health`);
+  console.log(`  📤 Upload:  POST http://0.0.0.0:${PORT}/api/upload\n`);
 });
 
 server.on('error', (err) => {
