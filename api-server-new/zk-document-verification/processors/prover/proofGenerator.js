@@ -27,38 +27,48 @@ async function generateProof(selectedClaim) {
         throw new Error(`Final zKey not found: ${zkeyFile}`);
     }
 
-    console.log("\n========== Proof Generation (In-Process Memory Efficient) ==========");
-    console.log(`[ProofGenerator] Circuit name     : ${circuit}`);
-    console.log(`[ProofGenerator] zKey path        : ${zkeyFile}`);
-    console.log(`[ProofGenerator] Witness path     : ${witnessFile}`);
-    console.log("[ProofGenerator] Starting Groth16 proving...");
+    console.log("\n[ZKP] Starting proof generation");
+    console.log(`[ZKP] Circuit: ${circuit}`);
+    console.log(`[ZKP] Witness: ${witnessFile}`);
+    console.log(`[ZKP] ZKey: ${zkeyFile}`);
+    console.log("[ZKP] Starting snarkjs groth16 prove");
 
     try {
-        const { proof, publicSignals } = await snarkjs.groth16.prove(zkeyFile, witnessFile);
+        const { proof, publicSignals } = await snarkjs.groth16.prove(
+            zkeyFile,
+            witnessFile,
+            {
+                debug: (msg) => console.log(`[ZKP snarkjs debug] ${msg}`),
+                info: (msg) => console.log(`[ZKP snarkjs info] ${msg}`),
+                warn: (msg) => console.warn(`[ZKP snarkjs warn] ${msg}`),
+                error: (msg) => console.error(`[ZKP snarkjs error] ${msg}`),
+            }
+        );
 
         fs.writeFileSync(proofFile, JSON.stringify(proof, null, 2));
         fs.writeFileSync(publicSignalsFile, JSON.stringify(publicSignals, null, 2));
 
-        console.log("[ProofGenerator] ✓ Groth16 proof generated in-process.");
-        console.log(`[ProofGenerator] Proof file          : ${proofFile}`);
-        console.log(`[ProofGenerator] Public signals file : ${publicSignalsFile}`);
+        console.log("[ZKP] Proof generation completed");
+        console.log(`[ZKP] Proof file: ${proofFile}`);
 
         return {
             proof: proofFile,
             publicSignals: publicSignalsFile
         };
     } catch (err) {
-        console.error(`[ProofGenerator] ❌ Proving failed for circuit ${circuit}:`, err.message);
-        throw new Error(`Groth16 proving failed for ${circuit}: ${err.message}`);
+        console.error(`[ZKP] Proving failed for ${circuit}:`, err.message || err);
+        throw new Error(`Groth16 proving failed for ${circuit}: ${err.message || err}`);
     } finally {
-        // Clean up temporary witness file after proof generation
         if (fs.existsSync(witnessFile)) {
             try {
                 fs.unlinkSync(witnessFile);
-                console.log(`[ProofGenerator] ✓ Temporary witness file cleaned up: ${witnessFile}`);
+                console.log(`[ZKP] Temporary witness file cleaned up: ${witnessFile}`);
             } catch (cleanupErr) {
-                console.warn(`[ProofGenerator] ⚠ Could not remove witness file: ${cleanupErr.message}`);
+                console.warn(`[ZKP] Could not remove witness file: ${cleanupErr.message}`);
             }
+        }
+        if (global.gc) {
+            try { global.gc(); } catch (e) {}
         }
     }
 }

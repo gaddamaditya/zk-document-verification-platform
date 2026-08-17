@@ -4,7 +4,7 @@
   "description": "Standalone Express backend for ZKP Document Verification",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --max-old-space-size=384 --expose-gc server.js",
     "dev": "node --watch server.js"
   },
   "keywords": [],

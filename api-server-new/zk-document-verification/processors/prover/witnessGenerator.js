@@ -30,10 +30,10 @@ async function generateWitness(selectedClaim) {
         throw new Error(`Witness calculator script not found: ${witnessCalculatorPath}`);
     }
 
-    console.log("\n========== Witness Generation (In-Process) ==========");
-    console.log(`[WitnessGenerator] Circuit       : ${circuit}`);
-    console.log(`[WitnessGenerator] WASM file     : ${wasmFile}`);
-    console.log(`[WitnessGenerator] Input file    : ${inputFile}`);
+    console.log("[ZKP] Witness generation started");
+    console.log(`[ZKP] Circuit: ${circuit}`);
+    console.log(`[ZKP] WASM: ${wasmFile}`);
+    console.log(`[ZKP] Input: ${inputFile}`);
 
     const wc = require(witnessCalculatorPath);
     const wasmBuffer = fs.readFileSync(wasmFile);
@@ -47,8 +47,8 @@ async function generateWitness(selectedClaim) {
         throw new Error("Witness generation failed.");
     }
 
-    console.log("[WitnessGenerator] ✓ Witness generated successfully in-process.");
-    console.log(`[WitnessGenerator] Witness file : ${witnessFile}`);
+    console.log("[ZKP] Witness generation completed");
+    console.log(`[ZKP] Witness: ${witnessFile}`);
 
     return witnessFile;
 }
