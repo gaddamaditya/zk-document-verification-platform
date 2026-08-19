@@ -14,20 +14,21 @@ function setupCircuit(circuitName) {
 
     }
 
-    console.log("\n========== Running Trusted Setup ==========\n");
+    const circuits = require("../../config/circuits");
+    const snarkjsBin = circuits.getSnarkjsCmd();
 
     execSync(
-        `snarkjs groth16 setup ${circuitName}.r1cs pot12_final.ptau ${circuitName}_0000.zkey`,
+        `${snarkjsBin} groth16 setup ${circuitName}.r1cs pot12_final.ptau ${circuitName}_0000.zkey`,
         { stdio: "inherit" }
     );
 
     execSync(
-        `snarkjs zkey contribute ${circuitName}_0000.zkey ${finalZkey} --name="First contribution" -v`,
+        `${snarkjsBin} zkey contribute ${circuitName}_0000.zkey ${finalZkey} --name="First contribution" -v`,
         { stdio: "inherit" }
     );
 
     execSync(
-        `snarkjs zkey export verificationkey ${finalZkey} ${verificationKey}`,
+        `${snarkjsBin} zkey export verificationkey ${finalZkey} ${verificationKey}`,
         { stdio: "inherit" }
     );
 

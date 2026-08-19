@@ -11,8 +11,9 @@ function verifyProof(selectedClaim) {
 
     console.log("\n========== Verifying Proof ==========\n");
 
+    const snarkjsBin = circuits.getSnarkjsCmd();
     const command =
-        `snarkjs groth16 verify ${config.verificationKey} ${config.public} ${config.proof}`;
+        `${snarkjsBin} groth16 verify "${config.verificationKey}" "${config.public}" "${config.proof}"`;
 
     execSync(command, { stdio: "inherit" });
 

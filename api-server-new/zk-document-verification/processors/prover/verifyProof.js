@@ -3,7 +3,7 @@ const path = require("path");
 const { execSync } = require("child_process");
 
 const circuits = require("../../config/circuits");
-const { ZKP_ROOT } = circuits;
+const { ZKP_ROOT, getSnarkjsCmd } = circuits;
 
 function verifyProof(selectedClaim) {
 
@@ -31,9 +31,8 @@ function verifyProof(selectedClaim) {
         throw new Error(`Public signals file not found: ${publicSignalsFile}`);
     }
 
-    // Resolve snarkjs binary — prefer local node_modules, fallback to global
-    const localSnarkjs = path.join(ZKP_ROOT, "node_modules", ".bin", "snarkjs");
-    const snarkjsBin = fs.existsSync(localSnarkjs) ? `"${localSnarkjs}"` : "snarkjs";
+    // Resolve local snarkjs executable via Node resolution / local bin
+    const snarkjsBin = getSnarkjsCmd();
 
     console.log("\n========== Proof Verification ==========\n");
 

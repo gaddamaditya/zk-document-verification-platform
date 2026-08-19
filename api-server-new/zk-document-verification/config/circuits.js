@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 
 // ─── ZKP_ROOT ───────────────────────────────────────────────────
 // The absolute path to the zk-document-verification project root.
@@ -7,9 +8,42 @@ const path = require("path");
 // path.join(ZKP_ROOT, ...) for all filesystem operations.
 const ZKP_ROOT = path.resolve(__dirname, "..");
 
+/**
+ * Resolves the locally installed snarkjs executable command string.
+ * Works on Linux (Render), Windows, macOS, in root or subdirectories.
+ */
+function getSnarkjsCmd() {
+    // 1. Try Node.js resolution via require.resolve("snarkjs") -> cli.cjs
+    try {
+        const snarkMain = require.resolve("snarkjs");
+        const cliPath = path.join(path.dirname(snarkMain), "cli.cjs");
+        if (fs.existsSync(cliPath)) {
+            return `"${process.execPath}" "${cliPath}"`;
+        }
+    } catch (e) {}
+
+    // 2. Try local node_modules/.bin/snarkjs
+    const binName = process.platform === "win32" ? "snarkjs.cmd" : "snarkjs";
+    const candidates = [
+        path.join(ZKP_ROOT, "node_modules", ".bin", binName),
+        path.join(ZKP_ROOT, "..", "node_modules", ".bin", binName),
+        path.join(process.cwd(), "node_modules", ".bin", binName),
+    ];
+
+    for (const binPath of candidates) {
+        if (fs.existsSync(binPath)) {
+            return `"${binPath}"`;
+        }
+    }
+
+    // 3. Fallback to npx
+    return "npx --no-install snarkjs";
+}
+
 module.exports = {
 
     ZKP_ROOT,
+    getSnarkjsCmd,
 
     NAME: {
         circuit: "NameVerifier",

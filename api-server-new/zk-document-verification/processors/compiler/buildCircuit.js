@@ -59,8 +59,8 @@ function buildCircuit(circuitName) {
     }
 
     // Resolve snarkjs binary
-    const localSnarkjs = path.join(ZKP_ROOT, "node_modules", ".bin", "snarkjs");
-    const snarkjsBin = fs.existsSync(localSnarkjs) ? `"${localSnarkjs}"` : "snarkjs";
+    const circuits = require("../../config/circuits");
+    const snarkjsBin = circuits.getSnarkjsCmd();
 
     console.log("\n========== Circuit Build ==========\n");
 
