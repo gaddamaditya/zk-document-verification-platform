@@ -351,7 +351,7 @@ export default function GenerateProof() {
   const openQrModal = async () => {
     if (!generateResult?.proofId) return;
     const baseUrl = getAppBaseUrl();
-    const verifyUrl = `${baseUrl}/verify?proof=${generateResult.proofId}`;
+    const verifyUrl = `${baseUrl}/verify-proof?proofId=${generateResult.proofId}`;
     try {
       const dataUrl = await QRCode.toDataURL(verifyUrl, { width: 280, margin: 2, color: { dark: '#0F172A', light: '#FFFFFF' } });
       setQrDataUrl(dataUrl);
@@ -364,7 +364,7 @@ export default function GenerateProof() {
   const copyVerifyLink = () => {
     if (!generateResult?.proofId) return;
     const baseUrl = getAppBaseUrl();
-    const verifyUrl = `${baseUrl}/verify?proof=${generateResult.proofId}`;
+    const verifyUrl = `${baseUrl}/verify-proof?proofId=${generateResult.proofId}`;
     navigator.clipboard.writeText(verifyUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);

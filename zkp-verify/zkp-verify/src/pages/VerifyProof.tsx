@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
   AlertCircle,
   CheckCircle2,
@@ -18,6 +19,164 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/config';
+
+function QrScannerModal({
+  onClose,
+  onScanSuccess,
+}: {
+  onClose: () => void;
+  onScanSuccess: (proofId: string) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    let html5Qrcode: Html5Qrcode | null = null;
+    let isMounted = true;
+
+    const startCamera = async () => {
+      try {
+        setError(null);
+        setInitializing(true);
+        html5Qrcode = new Html5Qrcode('qr-scanner-view');
+
+        await html5Qrcode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 220, height: 220 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            if (!isMounted) return;
+
+            let extractedId: string | null = null;
+
+            if (decodedText.startsWith('http://') || decodedText.startsWith('https://') || decodedText.startsWith('/')) {
+              try {
+                const urlObj = new URL(decodedText, window.location.origin);
+                extractedId = urlObj.searchParams.get('proofId') || urlObj.searchParams.get('proof');
+                if (!extractedId && urlObj.pathname.includes('/verify')) {
+                  const parts = urlObj.pathname.split('/');
+                  const last = parts[parts.length - 1];
+                  if (last && last.startsWith('ZK-')) {
+                    extractedId = last;
+                  }
+                }
+              } catch (e) {
+                console.error('[QR Scanner] URL parse error:', e);
+              }
+            } else if (/^ZK-[A-F0-9]+$/i.test(decodedText.trim())) {
+              extractedId = decodedText.trim();
+            } else {
+              const match = decodedText.match(/(?:proofId|proof)=([A-Za-z0-9\-]+)/i);
+              if (match) {
+                extractedId = match[1];
+              }
+            }
+
+            if (extractedId) {
+              isMounted = false;
+              if (html5Qrcode && html5Qrcode.isScanning) {
+                html5Qrcode
+                  .stop()
+                  .catch(() => {})
+                  .finally(() => {
+                    onScanSuccess(extractedId!);
+                  });
+              } else {
+                onScanSuccess(extractedId);
+              }
+            } else {
+              setError('Invalid verification QR code. Ensure it belongs to this ZKP app.');
+            }
+          },
+          () => {
+            // Ignore scan frame decode errors
+          }
+        );
+        if (isMounted) setInitializing(false);
+      } catch (err: any) {
+        console.error('[QR Scanner] Error starting camera:', err);
+        if (!isMounted) return;
+        setInitializing(false);
+        const errStr = String(err?.message || err || '');
+        if (err?.name === 'NotAllowedError' || errStr.toLowerCase().includes('permission') || errStr.toLowerCase().includes('denied')) {
+          setError('Camera permission is required to scan a QR code.');
+        } else if (err?.name === 'NotFoundError' || errStr.toLowerCase().includes('not found')) {
+          setError('Unable to access the camera.');
+        } else {
+          setError('Unable to access the camera. Please check browser permissions.');
+        }
+      }
+    };
+
+    const timer = setTimeout(startCamera, 100);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+      if (html5Qrcode && html5Qrcode.isScanning) {
+        html5Qrcode.stop().catch((e) => console.error('[QR Scanner] Error stopping camera:', e));
+      }
+    };
+  }, [onScanSuccess]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl space-y-4"
+      >
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-base font-bold text-foreground">Scan QR Code</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Point your camera at a ZKP proof verification QR code.
+        </p>
+
+        <div className="relative mx-auto w-full aspect-square max-w-[260px] overflow-hidden rounded-2xl bg-black border border-border flex items-center justify-center">
+          <div id="qr-scanner-view" className="w-full h-full" />
+
+          {initializing && !error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white text-xs gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
+              <span>Starting camera…</span>
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-700 dark:text-red-300">
+            <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{error}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="pt-1">
+          <Button variant="outline" onClick={onClose} className="w-full justify-center">
+            Cancel
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 type VerificationState = 'idle' | 'verifying' | 'valid' | 'invalid' | 'expired' | 'error';
 
@@ -181,12 +340,13 @@ export default function VerifyProof() {
   const [verifiedClaims, setVerifiedClaims] = useState<string[]>([]);
   const [qrProofId, setQrProofId] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
+  const [showQrScanner, setShowQrScanner] = useState(false);
 
   const allFilesSelected = files.proof && files.public;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const proofParam = params.get('proof');
+    const proofParam = params.get('proofId') || params.get('proof');
     if (proofParam) {
       loadProofById(proofParam);
     }
@@ -363,9 +523,27 @@ export default function VerifyProof() {
       {/* ── Section 1: Upload Proof Package ─────────────────────────── */}
       <Panel
         title="Upload Proof Package"
-        description="Select proof.json and public.json or scan a QR link."
+        description="Select proof.json and public.json or scan a QR code directly."
         icon={FileUp}
       >
+        {/* QR Code Action Option */}
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <QrCode className="h-4 w-4 text-blue-500 shrink-0" />
+            <span>Have a verifier QR code or proof link?</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowQrScanner(true)}
+            className="gap-2 border-blue-500/30 text-blue-600 hover:bg-blue-500/10 dark:text-blue-400 font-semibold"
+          >
+            <QrCode className="h-3.5 w-3.5" />
+            Scan QR Code
+          </Button>
+        </div>
+
         <div className="space-y-4">
           {fileSlots.map((slot) => (
             <FileUploadSlot
@@ -403,6 +581,16 @@ export default function VerifyProof() {
         </div>
       </Panel>
 
+      {/* QR Scanner Modal */}
+      {showQrScanner && (
+        <QrScannerModal
+          onClose={() => setShowQrScanner(false)}
+          onScanSuccess={(scannedProofId) => {
+            setShowQrScanner(false);
+            loadProofById(scannedProofId);
+          }}
+        />
+      )}
       {/* ── Section 2: Verification Result ──────────────────────────── */}
       {verificationState !== 'idle' && (
         <motion.div
