@@ -24,7 +24,7 @@ function generateProofId() {
     return id;
 }
 
-function saveProofRecord({ claims, documentType, proof, publicSignals, ttlHours = 168 }) {
+function saveProofRecord({ claims, documentType, proof, publicSignals, ttlHours = 48 }) {
     const proofId = generateProofId();
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + ttlHours * 60 * 60 * 1000);
@@ -89,8 +89,8 @@ function getProofRecord(proofId) {
     const expiresAt = new Date(record.expiresAt);
 
     if (now > expiresAt) {
-        console.log(`[ProofStore] Proof ${safeId} is expired`);
-        return { expired: true, proofId: safeId };
+        console.log(`[ProofStore] Proof ${safeId} is expired (expired at ${record.expiresAt})`);
+        return { expired: true, proofId: safeId, expiredAt: record.expiresAt, createdAt: record.createdAt };
     }
 
     return { success: true, ...record };

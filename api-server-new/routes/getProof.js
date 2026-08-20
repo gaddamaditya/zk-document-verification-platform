@@ -32,8 +32,12 @@ router.get('/:proofId', (req, res) => {
             return res.status(410).json({
                 success: false,
                 expired: true,
+                status: 'EXPIRED',
                 error: 'PROOF_EXPIRED',
-                message: 'This proof link has expired.',
+                message: 'This proof has expired.',
+                proofId: result.proofId,
+                expiredAt: result.expiredAt || null,
+                createdAt: result.createdAt || null,
             });
         }
 

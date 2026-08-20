@@ -349,6 +349,7 @@ export default function VerifyProof() {
   const [qrProofId, setQrProofId] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [expiredAt, setExpiredAt] = useState<string | null>(null);
 
   // Verification history state
   const [history, setHistory] = useState<VerificationRecord[]>([]);
@@ -389,7 +390,8 @@ export default function VerifyProof() {
 
       if (!res.ok || !data.success) {
         if (res.status === 410 || data.expired) {
-          setQrError('This proof link has expired.');
+          setExpiredAt(data.expiredAt || null);
+          setQrError('This proof has expired.');
           setVerificationState('expired');
         } else if (res.status === 404) {
           setQrError(`Proof ID "${proofId}" not found on server.`);
@@ -472,6 +474,7 @@ export default function VerifyProof() {
     setVerifiedClaims([]);
     setQrProofId(null);
     setQrError(null);
+    setExpiredAt(null);
   };
 
   const handleVerify = async () => {
@@ -685,12 +688,47 @@ export default function VerifyProof() {
             )}
 
             {verificationState === 'expired' && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center space-y-2">
-                <Clock className="mx-auto h-8 w-8 text-amber-500" />
-                <h3 className="text-lg font-bold text-amber-900 dark:text-amber-200">PROOF EXPIRED</h3>
-                <p className="text-xs text-amber-800 dark:text-amber-300">
-                  This proof link ({qrProofId}) has expired and can no longer be verified.
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center space-y-3">
+                <Clock className="mx-auto h-10 w-10 text-amber-500" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                  <Clock className="h-3 w-3" />
+                  EXPIRED
+                </div>
+                <h3 className="text-lg font-bold text-amber-900 dark:text-amber-200">EXPIRED PROOF</h3>
+                <p className="text-sm text-amber-800 dark:text-amber-300">
+                  This proof link has expired.
                 </p>
+                {expiredAt && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
+                    <p className="font-semibold">Expired:</p>
+                    <p className="mt-0.5 font-mono">
+                      {new Date(expiredAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                      {', '}
+                      {new Date(expiredAt).toLocaleTimeString('en-IN', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </p>
+                  </div>
+                )}
+                <p className="text-xs text-amber-700/80 dark:text-amber-400/80">
+                  For security and privacy, expired proofs cannot be retrieved or verified.
+                </p>
+                {qrProofId && (
+                  <p className="text-[0.7rem] font-mono text-amber-700/60 dark:text-amber-400/60">
+                    {qrProofId}
+                  </p>
+                )}
+                <div className="pt-1">
+                  <Button variant="outline" size="sm" onClick={reset} className="border-amber-500/30 text-amber-700 hover:bg-amber-500/10 dark:text-amber-300">
+                    Close
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -700,10 +738,16 @@ export default function VerifyProof() {
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-6 w-6" />
                   </div>
-                  <div>
-                    <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">VALID PROOF</h4>
-                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                      The cryptographic zero-knowledge proof was successfully verified.
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">VALID PROOF</h4>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                        <CheckCircle2 className="h-3 w-3" />
+                        VALID
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                      Cryptographic zero-knowledge proof verified successfully.
                     </p>
                   </div>
                 </div>
@@ -731,9 +775,15 @@ export default function VerifyProof() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-600 dark:text-red-400">
                   <ShieldX className="h-6 w-6" />
                 </div>
-                <div>
-                  <h4 className="text-base font-bold text-red-900 dark:text-red-100">INVALID PROOF</h4>
-                  <p className="text-xs text-red-700 dark:text-red-300">
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-base font-bold text-red-900 dark:text-red-100">INVALID PROOF</h4>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-red-500/40 bg-red-500/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-red-700 dark:text-red-300">
+                      <ShieldX className="h-3 w-3" />
+                      INVALID
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">
                     The zero-knowledge proof mathematical verification failed.
                   </p>
                 </div>
