@@ -25,8 +25,9 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
 }));
+app.options('*', cors());
 app.use(express.json({ limit: '50mb' }));
 
 // ─── Routes ─────────────────────────────────────────────────────

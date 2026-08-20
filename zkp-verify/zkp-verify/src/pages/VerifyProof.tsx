@@ -363,11 +363,14 @@ export default function VerifyProof() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        if (data.expired) {
-          setQrError('PROOF EXPIRED');
+        if (res.status === 410 || data.expired) {
+          setQrError('This proof link has expired.');
           setVerificationState('expired');
+        } else if (res.status === 404) {
+          setQrError(`Proof ID "${proofId}" not found on server.`);
+          setVerificationState('error');
         } else {
-          setQrError(data.message || 'Proof not found');
+          setQrError(data.message || 'Unable to load proof data.');
           setVerificationState('error');
         }
         return;
@@ -395,10 +398,15 @@ export default function VerifyProof() {
       } else {
         setVerificationState('invalid');
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('[VerifyProof] Error loading proof:', err);
       setVerificationState('error');
-      setQrError('Failed to load proof by ID');
+      const msg = err?.message || String(err || '');
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        setQrError('Unable to connect to verification server. Please check network connection or try again.');
+      } else {
+        setQrError('Failed to load proof data. Please try again.');
+      }
     }
   };
 

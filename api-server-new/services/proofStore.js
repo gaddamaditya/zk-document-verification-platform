@@ -8,6 +8,11 @@ if (!fs.existsSync(STORE_DIR)) {
     fs.mkdirSync(STORE_DIR, { recursive: true });
 }
 
+// ─── Dual Storage: In-Memory Cache + Disk File Storage ─────────────────────
+// Keeps proof records in RAM for instant cross-device lookups during server runtime,
+// while persisting to local disk files for longevity.
+const memoryStore = new Map();
+
 function generateProofId() {
     let id;
     let filePath;
@@ -15,7 +20,7 @@ function generateProofId() {
         const hex = crypto.randomBytes(4).toString('hex').toUpperCase();
         id = `ZK-${hex}`;
         filePath = path.join(STORE_DIR, `${id}.json`);
-    } while (fs.existsSync(filePath));
+    } while (memoryStore.has(id) || fs.existsSync(filePath));
     return id;
 }
 
@@ -34,8 +39,16 @@ function saveProofRecord({ claims, documentType, proof, publicSignals, ttlHours 
         expiresAt: expiresAt.toISOString(),
     };
 
-    const filePath = path.join(STORE_DIR, `${proofId}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(record, null, 2));
+    // 1. Save in RAM cache
+    memoryStore.set(proofId, record);
+
+    // 2. Save on disk
+    try {
+        const filePath = path.join(STORE_DIR, `${proofId}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(record, null, 2));
+    } catch (fsErr) {
+        console.warn(`[ProofStore] Warning: Disk write failed for ${proofId}:`, fsErr.message);
+    }
 
     console.log(`[ProofStore] Saved proof record ${proofId}`);
     return record;
@@ -45,31 +58,42 @@ function getProofRecord(proofId) {
     if (!proofId || typeof proofId !== 'string') return null;
 
     // Sanitize proofId to prevent directory traversal
-    const safeId = proofId.replace(/[^A-Z0-9\-]/g, '');
-    const filePath = path.join(STORE_DIR, `${safeId}.json`);
+    const safeId = proofId.trim().toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+    if (!safeId) return null;
 
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
+    // 1. Check in-memory store
+    let record = memoryStore.get(safeId);
 
-    try {
-        const raw = fs.readFileSync(filePath, 'utf-8');
-        const record = JSON.parse(raw);
-
-        // Expiration check
-        const now = new Date();
-        const expiresAt = new Date(record.expiresAt);
-
-        if (now > expiresAt) {
-            console.log(`[ProofStore] Proof ${safeId} is expired`);
-            return { expired: true, proofId: safeId };
+    // 2. Fall back to disk read if not in memory
+    if (!record) {
+        const filePath = path.join(STORE_DIR, `${safeId}.json`);
+        if (fs.existsSync(filePath)) {
+            try {
+                const raw = fs.readFileSync(filePath, 'utf-8');
+                record = JSON.parse(raw);
+                // Hydrate memory cache
+                memoryStore.set(safeId, record);
+            } catch (err) {
+                console.error(`[ProofStore] Error reading disk record ${safeId}:`, err);
+                return null;
+            }
         }
+    }
 
-        return { success: true, ...record };
-    } catch (err) {
-        console.error(`[ProofStore] Error reading record ${safeId}:`, err);
+    if (!record) {
         return null;
     }
+
+    // Expiration check
+    const now = new Date();
+    const expiresAt = new Date(record.expiresAt);
+
+    if (now > expiresAt) {
+        console.log(`[ProofStore] Proof ${safeId} is expired`);
+        return { expired: true, proofId: safeId };
+    }
+
+    return { success: true, ...record };
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 export const getApiBaseUrl = (): string => {
-    let url = import.meta.env.VITE_API_URL || 'https://zk-document-verification-platform-production.up.railway.app';
+    let url = import.meta.env.VITE_API_URL || 'https://zk-document-verification-platform.onrender.com';
     url = url.trim().replace(/\/$/, '');
     if (url.endsWith('/api')) {
         url = url.slice(0, -4);
@@ -16,5 +16,5 @@ export const getAppBaseUrl = (): string => {
     if (typeof window !== 'undefined' && window.location && window.location.origin) {
         return window.location.origin.replace(/\/$/, '');
     }
-    return '';
+    return 'https://zk-document-verification-platform-rho.vercel.app';
 };
