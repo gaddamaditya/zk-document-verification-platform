@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import QRCode from 'qrcode';
 import {
   AlertCircle,
   CheckCircle2,
   Copy,
+  Eye,
   Download,
   FileText,
   FileUp,
@@ -189,8 +190,14 @@ export default function GenerateProof() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Document preview state
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const handleFileSelected = (file: File) => {
+    // Revoke previous preview URL to prevent memory leaks
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
     setUploadResult(null);
     setUploadError(null);
   };
@@ -208,6 +215,8 @@ export default function GenerateProof() {
   };
 
   const clearFile = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
     setSelectedFile(null);
     setUploadResult(null);
     setUploadError(null);
@@ -218,6 +227,14 @@ export default function GenerateProof() {
     setGenerateResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const uploadFile = async () => {
     if (!selectedFile) return;
@@ -541,6 +558,78 @@ export default function GenerateProof() {
           </div>
         )}
       </Panel>
+
+      {/* ── Document Preview ─────────────────────────────────────── */}
+      {selectedFile && previewUrl && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Panel
+            title="Document Preview"
+            description="Local preview of the selected document."
+            icon={Eye}
+          >
+            {/* File metadata */}
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                <FileText className="h-3.5 w-3.5" />
+                {selectedFile.type === 'application/pdf' ? 'PDF' : selectedFile.type.includes('png') ? 'PNG' : 'JPEG'}
+              </div>
+              <span className="text-sm font-medium text-foreground truncate max-w-[260px]">{selectedFile.name}</span>
+              <span className="text-xs text-muted-foreground">({formatBytes(selectedFile.size)})</span>
+            </div>
+
+            {/* Preview area */}
+            <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
+              {selectedFile.type === 'application/pdf' ? (
+                <>
+                  <object
+                    data={previewUrl}
+                    type="application/pdf"
+                    className="w-full"
+                    style={{ height: '400px' }}
+                  >
+                    {/* Built-in fallback: displayed when browser cannot render the PDF */}
+                    <div className="flex flex-col items-center justify-center gap-3 py-16 px-6 text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-teal-600 dark:text-teal-400">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">PDF preview is not supported in this browser.</p>
+                    </div>
+                  </object>
+                  <div className="border-t border-border bg-muted/40 px-4 py-2 text-center">
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                    >
+                      Can't see the preview? Open PDF in a new tab
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center bg-muted/20 p-4">
+                  <img
+                    src={previewUrl}
+                    alt={`Preview of ${selectedFile.name}`}
+                    className="max-h-[400px] w-full rounded-lg object-contain"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Privacy note */}
+            <div className="mt-4 rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6">
+              <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
+              Preview is displayed locally. Your original document is not shared with the verifier.
+            </div>
+          </Panel>
+        </motion.div>
+      )}
 
       {/* ── Step 2: OCR Results ─────────────────────────────────── */}
       {documentUploaded && (

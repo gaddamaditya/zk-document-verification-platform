@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
@@ -7,11 +7,13 @@ import {
   Clock,
   FileJson,
   FileUp,
+  History,
   Loader2,
   QrCode,
   RotateCcw,
   ShieldCheck,
   ShieldX,
+  Trash2,
   Upload,
   X,
 } from 'lucide-react';
@@ -19,6 +21,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/config';
+import {
+  type VerificationRecord,
+  getHistory,
+  addRecord,
+  clearHistory,
+} from '@/services/verificationHistory';
 
 function QrScannerModal({
   onClose,
@@ -342,6 +350,19 @@ export default function VerifyProof() {
   const [qrError, setQrError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
 
+  // Verification history state
+  const [history, setHistory] = useState<VerificationRecord[]>([]);
+  // Per-attempt deduplication: unique ID per verification attempt
+  const attemptIdRef = useRef<string>('');
+
+  const refreshHistory = useCallback(() => {
+    setHistory(getHistory());
+  }, []);
+
+  useEffect(() => {
+    refreshHistory();
+  }, [refreshHistory]);
+
   const allFilesSelected = files.proof && files.public;
 
   useEffect(() => {
@@ -353,6 +374,10 @@ export default function VerifyProof() {
   }, []);
 
   const loadProofById = async (proofId: string) => {
+    // Generate unique attempt ID for deduplication
+    const currentAttemptId = `qr-${proofId}-${Date.now()}`;
+    attemptIdRef.current = currentAttemptId;
+
     setVerificationState('verifying');
     setQrProofId(proofId);
     setQrError(null);
@@ -393,10 +418,28 @@ export default function VerifyProof() {
       const verifyData = await verifyRes.json();
 
       if (verifyRes.ok && verifyData.verified) {
-        setVerifiedClaims(verifyData.claims || data.claims || []);
+        const resolvedClaims = verifyData.claims || data.claims || [];
+        setVerifiedClaims(resolvedClaims);
         setVerificationState('valid');
+        // Record valid verification in history
+        addRecord({
+          proofId,
+          status: 'VALID',
+          claims: resolvedClaims.map((c: string) => CLAIM_LABELS[c] ?? c),
+          timestamp: new Date().toISOString(),
+          circuitName: verifyData.circuitName || data.circuitName,
+        }, currentAttemptId);
+        refreshHistory();
       } else {
         setVerificationState('invalid');
+        // Record invalid verification in history
+        addRecord({
+          proofId,
+          status: 'INVALID',
+          claims: (data.claims || []).map((c: string) => CLAIM_LABELS[c] ?? c),
+          timestamp: new Date().toISOString(),
+        }, currentAttemptId);
+        refreshHistory();
       }
     } catch (err: any) {
       console.error('[VerifyProof] Error loading proof:', err);
@@ -433,6 +476,11 @@ export default function VerifyProof() {
 
   const handleVerify = async () => {
     if (!files.proof || !files.public) return;
+
+    // Generate unique attempt ID for deduplication
+    const currentAttemptId = `manual-${Date.now()}`;
+    attemptIdRef.current = currentAttemptId;
+
     setVerificationState('verifying');
 
     try {
@@ -454,10 +502,28 @@ export default function VerifyProof() {
       }
 
       if (data.verified) {
-        setVerifiedClaims(data.claims || []);
+        const resolvedClaims = data.claims || [];
+        setVerifiedClaims(resolvedClaims);
         setVerificationState('valid');
+        // Record valid verification in history
+        addRecord({
+          proofId: qrProofId || null,
+          status: 'VALID',
+          claims: resolvedClaims.map((c: string) => CLAIM_LABELS[c] ?? c),
+          timestamp: new Date().toISOString(),
+          circuitName: data.circuitName,
+        }, currentAttemptId);
+        refreshHistory();
       } else {
         setVerificationState('invalid');
+        // Record invalid verification in history
+        addRecord({
+          proofId: qrProofId || null,
+          status: 'INVALID',
+          claims: [],
+          timestamp: new Date().toISOString(),
+        }, currentAttemptId);
+        refreshHistory();
       }
     } catch (err) {
       console.error(err);
@@ -686,6 +752,127 @@ export default function VerifyProof() {
           </Panel>
         </motion.div>
       )}
+
+      {/* ── Section 3: Verification History ────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+      >
+        <Panel
+          title="Verification History"
+          description="Recent proof verifications from this browser."
+          icon={History}
+        >
+          {history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground mb-3">
+                <History className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-semibold text-muted-foreground">No verification history yet.</p>
+              <p className="mt-1 text-xs text-muted-foreground max-w-xs">
+                Completed verifications will appear here automatically.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {history.map((record) => (
+                  <div
+                    key={record.id}
+                    className={cn(
+                      'flex items-start gap-3 rounded-xl border p-4 transition-colors',
+                      record.status === 'VALID'
+                        ? 'border-emerald-500/30 bg-emerald-500/5'
+                        : 'border-red-500/30 bg-red-500/5',
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full mt-0.5',
+                        record.status === 'VALID'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-red-500/20 text-red-600 dark:text-red-400',
+                      )}
+                    >
+                      {record.status === 'VALID' ? (
+                        <CheckCircle2 className="h-5 w-5" />
+                      ) : (
+                        <ShieldX className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cn(
+                            'text-sm font-bold',
+                            record.status === 'VALID'
+                              ? 'text-emerald-800 dark:text-emerald-200'
+                              : 'text-red-800 dark:text-red-200',
+                          )}
+                        >
+                          {record.status === 'VALID' ? 'VALID PROOF' : 'INVALID PROOF'}
+                        </span>
+                        {record.circuitName && (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
+                            {record.circuitName}
+                          </span>
+                        )}
+                      </div>
+                      {record.claims.length > 0 && (
+                        <p className="mt-0.5 text-xs text-muted-foreground truncate">
+                          {record.claims.join(' · ')}
+                        </p>
+                      )}
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.7rem] text-muted-foreground">
+                        {record.proofId && (
+                          <span className="font-mono font-medium">{record.proofId}</span>
+                        )}
+                        <span>
+                          {new Date(record.timestamp).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                          {', '}
+                          {new Date(record.timestamp).toLocaleTimeString('en-IN', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm('Clear all verification history from this browser?')) {
+                      clearHistory();
+                      refreshHistory();
+                    }
+                  }}
+                  className="gap-2 text-red-600 border-red-500/30 hover:bg-red-500/10 dark:text-red-400"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Clear History
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Privacy note */}
+          <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3.5 text-xs text-muted-foreground leading-6">
+            <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-blue-500" />
+            Verification history is stored only in this browser and does not contain the original document or private document data.
+          </div>
+        </Panel>
+      </motion.div>
     </div>
   );
 }
