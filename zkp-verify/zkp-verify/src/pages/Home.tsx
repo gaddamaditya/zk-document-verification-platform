@@ -5,12 +5,12 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  EyeOff,
   FileCheck,
   Filter,
   Lock,
   Shield,
   ShieldCheck,
+  User,
   UserCheck,
   Verified,
 } from 'lucide-react';
@@ -126,69 +126,96 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Right Side Realistic Aadhaar Card & Proof Visual Mockup */}
+        {/* Right Side 3-Card Overlapping Composition */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
-          className="relative w-full max-w-md mx-auto flex flex-col gap-4"
+          className="relative w-full max-w-lg mx-auto py-8 px-4 flex items-center justify-center min-h-[320px]"
         >
-          {/* Realistic National ID / Aadhaar Card */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-xs relative z-20">
-            <div className="flex justify-between items-start mb-5 border-b border-border pb-3">
+          {/* Card 1: Aadhaar Card (Left / Back) */}
+          <motion.div
+            drag
+            dragSnapToOrigin
+            dragElastic={0.12}
+            dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }}
+            className="absolute top-2 left-2 sm:left-4 w-[210px] sm:w-[230px] rounded-xl border border-border bg-card p-3.5 shadow-sm transform -rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
+          >
+            <div className="flex justify-between items-start border-b border-border pb-2 mb-2.5">
               <div>
-                <h3 className="text-base font-bold text-foreground">National ID Card</h3>
-                <p className="text-xs font-mono text-muted-foreground mt-0.5">XXXX XXXX 4821</p>
+                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Aadhaar</span>
+                <span className="text-xs font-mono font-semibold text-foreground">XXXX XXXX 4821</span>
               </div>
-              <div className="inline-flex items-center gap-1 rounded-full border border-teal-500/30 bg-teal-500/10 px-2.5 py-0.5 text-xs font-semibold text-teal-700 dark:text-teal-300">
-                <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.65rem] font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-3 w-3" />
                 Verified
-              </div>
+              </span>
             </div>
 
-            <div className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground block">Name</span>
-                  <span className="text-sm font-semibold text-foreground">Leo Das</span>
-                </div>
-                <div>
-                  <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground block">Date of Birth</span>
-                  <span className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                    <span>14 May 2004</span>
-                  </span>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-8 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
+                <User className="h-4 w-4" />
               </div>
+              <div className="min-w-0">
+                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
+                <span className="text-xs font-semibold text-foreground truncate block">Leo Das</span>
+              </div>
+            </div>
+          </motion.div>
 
+          {/* Card 2: PAN Card (Right / Back) */}
+          <motion.div
+            drag
+            dragSnapToOrigin
+            dragElastic={0.12}
+            dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }}
+            className="absolute top-4 right-2 sm:right-4 w-[210px] sm:w-[230px] rounded-xl border border-border bg-card p-3.5 shadow-sm transform rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
+          >
+            <div className="flex justify-between items-start border-b border-border pb-2 mb-2.5">
               <div>
-                <span className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground block">Address</span>
-                <span className="text-xs font-medium text-muted-foreground flex items-center gap-2 mt-1">
-                  <span className="h-3.5 w-36 rounded bg-muted inline-block" />
-                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                </span>
+                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">PAN</span>
+                <span className="text-xs font-mono font-semibold text-foreground">ABCDE1234F</span>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.65rem] font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-3 w-3" />
+                Verified
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-8 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
+                <span className="text-xs font-semibold text-foreground truncate block">Miles Morales</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Overlapping Proof Result card */}
-          <div className="rounded-xl border border-border bg-card p-4 shadow-md transform translate-x-4 sm:translate-x-6 -translate-y-5 relative z-30">
+          {/* Card 3: Proof Verified Card (Center / Front) */}
+          <div className="relative z-20 w-[240px] sm:w-[260px] rounded-xl border border-border bg-card p-4 shadow-md mt-14 sm:mt-16 transition-shadow hover:shadow-lg">
             <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-border">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400">
-                <ShieldCheck className="h-4 w-4" />
-              </div>
+              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <h4 className="text-xs font-bold text-foreground">Proof Verified</h4>
             </div>
 
             <ul className="space-y-1.5 text-xs font-medium text-foreground">
               <li className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-teal-500 shrink-0" />
+                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                 <span>Name: Leo Das</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="h-3.5 w-3.5 text-teal-500 shrink-0" />
+                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                 <span>Age ≥ 18</span>
               </li>
             </ul>
+
+            <div className="border-t border-border mt-3 pt-2">
+              <span className="text-[0.68rem] text-muted-foreground font-medium block">
+                Generated moments ago
+              </span>
+            </div>
           </div>
         </motion.div>
       </section>
