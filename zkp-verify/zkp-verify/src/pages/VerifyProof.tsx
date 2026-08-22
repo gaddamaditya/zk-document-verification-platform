@@ -536,8 +536,7 @@ export default function VerifyProof() {
   };
 
   return (
-    <div className="space-y-8 pb-16">
-      {/* Header Section */}
+    <div className="space-y-8 pb-16">      {/* Header Section */}
       <section className="max-w-4xl space-y-2">
         <motion.h1
           initial={{ opacity: 0, y: 14 }}
@@ -553,7 +552,7 @@ export default function VerifyProof() {
           transition={{ delay: 0.05 }}
           className="text-sm leading-6 text-muted-foreground max-w-2xl"
         >
-          Confirm that the selected claims were cryptographically verified without exposing the underlying private data.
+          Check whether the shared document claims are valid.
         </motion.p>
       </section>
 
@@ -581,7 +580,7 @@ export default function VerifyProof() {
             <QrCode className="h-7 w-7" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground mb-1">SCAN QR CODE</h3>
+            <h3 className="text-base font-bold text-foreground mb-1">Scan QR Code</h3>
             <p className="text-xs text-muted-foreground">Scan the QR code provided by the document owner.</p>
           </div>
         </button>
@@ -591,8 +590,8 @@ export default function VerifyProof() {
             <FileUp className="h-7 w-7" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground mb-1">UPLOAD PROOF FILES</h3>
-            <p className="text-xs text-muted-foreground">Upload the proof files (proof.json & public.json) directly from your device.</p>
+            <h3 className="text-base font-bold text-foreground mb-1">Upload Proof Files</h3>
+            <p className="text-xs text-muted-foreground">Upload the proof files directly from your device.</p>
           </div>
         </div>
       </div>
@@ -600,7 +599,7 @@ export default function VerifyProof() {
       {/* ── Upload Proof Files Panel ───────────────────────────── */}
       <Panel
         title="Upload Proof Package"
-        description="Select proof.json and public.json to run mathematical verification."
+        description="Select proof.json and public.json to verify document claims."
         icon={FileUp}
       >
         {/* QR Code Action Option */}
@@ -642,7 +641,7 @@ export default function VerifyProof() {
             {verificationState === 'verifying' ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Verifying Proof…
+                Checking proof…
               </>
             ) : (
               'Verify Proof'
@@ -668,6 +667,7 @@ export default function VerifyProof() {
           }}
         />
       )}
+
       {/* ── Section 2: Verification Result ──────────────────────────── */}
       {verificationState !== 'idle' && (
         <motion.div
@@ -677,13 +677,13 @@ export default function VerifyProof() {
         >
           <Panel
             title="Verification Result"
-            description="Cryptographic proof evaluation results."
+            description="Status of the verified document claims."
             icon={ShieldCheck}
           >
             {verificationState === 'verifying' && (
               <div className="flex items-center gap-3 py-8 text-sm text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                <span>Evaluating Groth16 zero-knowledge proof against public inputs…</span>
+                <span>Checking document verification proof…</span>
               </div>
             )}
 
@@ -740,14 +740,14 @@ export default function VerifyProof() {
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">VALID PROOF</h4>
+                      <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">Proof verified</h4>
                       <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                         <CheckCircle2 className="h-3 w-3" />
-                        VALID
+                        Verified
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
-                      Cryptographic zero-knowledge proof verified successfully.
+                      These claims were successfully verified.
                     </p>
                   </div>
                 </div>
@@ -816,8 +816,8 @@ export default function VerifyProof() {
         transition={{ delay: 0.2, duration: 0.3 }}
       >
         <Panel
-          title="Verification History"
-          description="Recent proof verifications from this browser."
+          title="Your recent verifications"
+          description="Verifications completed in this browser."
           icon={History}
         >
           {history.length === 0 ? (

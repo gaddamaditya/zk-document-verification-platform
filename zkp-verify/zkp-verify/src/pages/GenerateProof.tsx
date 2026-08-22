@@ -499,7 +499,7 @@ export default function GenerateProof() {
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl"
         >
-          Generate Zero-Knowledge Proof
+          Generate Proof
         </motion.h1>
 
         <motion.p
@@ -508,7 +508,7 @@ export default function GenerateProof() {
           transition={{ delay: 0.05 }}
           className="text-sm leading-6 text-muted-foreground max-w-2xl"
         >
-          Transform your sensitive documents into cryptographic proofs. Share verified facts without revealing the underlying data.
+          Transform your sensitive documents into verification proofs without sharing the raw file.
         </motion.p>
       </section>
 
@@ -929,8 +929,8 @@ export default function GenerateProof() {
 
       {/* ── Step 3: Select Claims ───────────────────────────────── */}
       <Panel
-        title="Claims available for this document"
-        description="Select any combination of attributes to generate a unified zero-knowledge proof."
+        title="What would you like to verify?"
+        description="Select the specific information you want to confirm without exposing the rest of your document."
         icon={ShieldCheck}
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
@@ -1065,7 +1065,7 @@ export default function GenerateProof() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                Proof Generated Successfully
+                Proof ready
               </div>
               {generateResult.proofId && (
                 <span className="rounded-md border border-emerald-500/30 bg-white/60 dark:bg-slate-900/60 px-2.5 py-1 text-xs font-mono font-bold text-emerald-800 dark:text-emerald-200">
@@ -1074,8 +1074,8 @@ export default function GenerateProof() {
               )}
             </div>
 
-            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-              Your claims have been converted into a zero-knowledge proof without revealing your original document.
+            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+              Share the proof, not the document. Your selected details are verified while your raw document stays private.
             </p>
 
             <div className="mt-4 border-t border-emerald-500/20 pt-3">
