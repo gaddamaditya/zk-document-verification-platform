@@ -530,11 +530,12 @@ export default function GenerateProof() {
 
         <div
           className={cn(
-            'rounded-lg border border-dashed p-6 text-center transition-colors',
+            'rounded-lg border border-dashed p-6 text-center transition-colors cursor-pointer select-none',
             dragOver
               ? 'border-primary bg-primary/5'
               : 'border-border hover:border-primary/50 bg-card',
           )}
+          onClick={() => fileInputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
@@ -546,24 +547,38 @@ export default function GenerateProof() {
           </p>
 
           {selectedFile ? (
-            <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-medium">
+            <div
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-medium"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Check className="h-3.5 w-3.5 text-emerald-500" />
               <span className="max-w-[200px] truncate">{selectedFile.name}</span>
               <span className="text-muted-foreground">· {formatBytes(selectedFile.size)}</span>
-              <button type="button" onClick={clearFile} className="ml-1 text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); clearFile(); }}
+                className="ml-1 text-muted-foreground hover:text-foreground"
+              >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : null}
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="rounded-md">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              className="rounded-md"
+            >
               {selectedFile ? 'Change Document' : 'Choose Document'}
             </Button>
             <Button
+              type="button"
               size="sm"
               disabled={!selectedFile || uploading}
-              onClick={uploadFile}
+              onClick={(e) => { e.stopPropagation(); uploadFile(); }}
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
             >
               {uploading ? (
@@ -627,7 +642,7 @@ export default function GenerateProof() {
                   >
                     {/* Built-in fallback: displayed when browser cannot render the PDF */}
                     <div className="flex flex-col items-center justify-center gap-3 py-16 px-6 text-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-teal-600 dark:text-teal-400">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-teal-600 dark:text-teal-400">
                         <FileText className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-foreground">{selectedFile.name}</p>
@@ -659,13 +674,13 @@ export default function GenerateProof() {
             {/* Privacy note */}
             <div className="mt-4 rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6">
               <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
-              Preview is displayed locally. Your original document is not shared with the verifier.
+              Your original document is not shared with the verifier.
             </div>
           </Panel>
         </motion.div>
       )}
 
-      {/* ── Document Authenticity Verification (Optional) ──────── */}
+      {/* ── Document Authenticity (Optional Verification) ────────── */}
       {selectedFile && (
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -702,59 +717,48 @@ export default function GenerateProof() {
                     <p className="text-xs text-emerald-700 dark:text-emerald-300 opacity-80">{credentialFile.name}</p>
                   </div>
                 </div>
-                <button type="button" onClick={clearCredential} className="rounded-full p-1 hover:bg-muted">
-                  <X className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
+                <button type="button" onClick={clearCredential} className="rounded-full p-1 hover:bg-muted text-muted-foreground">
+                  <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
-              <div
-                className="rounded-xl border-2 border-dashed border-border bg-muted/30 px-5 py-5 text-center transition-colors hover:border-teal-500/50 hover:bg-muted/50 mb-4"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const f = e.dataTransfer.files?.[0];
-                  if (f) handleCredentialSelected(f);
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-teal-600 dark:text-teal-400">
-                      <ShieldCheck className="h-5 w-5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-bold text-foreground">Issuer Credential</p>
-                      <p className="text-xs text-muted-foreground">Upload the digitally signed credential associated with this document.</p>
-                    </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 mb-4 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
+                    <ShieldCheck className="h-5 w-5" />
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => credentialInputRef.current?.click()}>
-                    <Upload className="h-3.5 w-3.5 mr-1" />
-                    Browse
-                  </Button>
+                  <div className="text-left">
+                    <p className="text-sm font-bold text-foreground">Issuer Credential</p>
+                    <p className="text-xs text-muted-foreground">Upload the digitally signed credential associated with this document.</p>
+                  </div>
                 </div>
+                <Button variant="outline" size="sm" onClick={() => credentialInputRef.current?.click()}>
+                  Select Credential
+                </Button>
               </div>
             )}
 
-            <div className="flex flex-wrap gap-3">
-              <Button
-                disabled={!selectedFile || !credentialFile || authenticityLoading}
-                onClick={verifyAuthenticity}
-                className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
-              >
-                {authenticityLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Verifying…
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="h-4 w-4" />
-                    Verify Authenticity
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!credentialFile || authenticityLoading}
+              onClick={verifyAuthenticity}
+              className="border-teal-500/30 text-teal-700 hover:bg-teal-500/10 dark:text-teal-300"
+            >
+              {authenticityLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                  Verifying Authenticity…
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="h-4 w-4 mr-1.5 text-teal-500" />
+                  Verify Document Authenticity
+                </>
+              )}
+            </Button>
 
-            {/* Authenticity Result */}
+            {/* Authenticity verification result */}
             {authenticityResult && authenticityResult.status === 'AUTHENTIC' && (
               <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 space-y-3">
                 <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
@@ -844,38 +848,33 @@ export default function GenerateProof() {
             {ocrLoading && (
               <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
-                <span>Extracting document information…</span>
+                <span>Extracting document attributes using Tesseract OCR…</span>
               </div>
             )}
 
             {ocrError && (
-              <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
+              <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-700 dark:text-red-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <p>{ocrError}</p>
-                  <p className="mt-1 text-xs opacity-80">You can still proceed with claim selection.</p>
-                </div>
+                <span>{ocrError}</span>
               </div>
             )}
 
             {ocrData && (
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300">
-                  <FileText className="h-3.5 w-3.5" />
-                  {ocrData.documentType}
-                </div>
-
-                <div className="rounded-xl border border-border bg-muted/40 p-4">
-                  <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Extracted Attributes
-                  </p>
-                  <div className="space-y-1.5">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Document Type:</span>
+                    <span className="rounded-md border border-teal-500/30 bg-teal-500/10 px-2.5 py-0.5 text-xs font-bold text-teal-700 dark:text-teal-300">
+                      {ocrData.documentType}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     {Object.entries(ocrData.attributes)
                       .filter(([key, value]) => key !== 'type' && Boolean(value))
                       .map(([key]) => (
                         <div key={`summary-${key}`} className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                          <span>{FIELD_LABELS[key] ?? key} Detected</span>
+                          <span>{FIELD_LABELS[key] ?? key}</span>
                         </div>
                       ))}
                   </div>
@@ -936,9 +935,18 @@ export default function GenerateProof() {
             const selected = selectedClaims.includes(claim.id);
 
             return (
-              <label
+              <div
                 key={claim.id}
-                htmlFor={`claim-${claim.id}`}
+                role="checkbox"
+                aria-checked={selected}
+                tabIndex={0}
+                onClick={() => toggleClaim(claim.id)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleClaim(claim.id);
+                  }
+                }}
                 className={cn(
                   'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-all cursor-pointer select-none',
                   selected
@@ -947,11 +955,11 @@ export default function GenerateProof() {
                 )}
               >
                 <input
-                  id={`claim-${claim.id}`}
                   type="checkbox"
                   checked={selected}
-                  onChange={() => toggleClaim(claim.id)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 mt-0.5 shrink-0 cursor-pointer accent-teal-600 dark:accent-teal-400"
+                  readOnly
+                  tabIndex={-1}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 mt-0.5 shrink-0 cursor-pointer accent-teal-600 dark:accent-teal-400 pointer-events-none"
                 />
                 <div className="flex-1 min-w-0">
                   <p className={cn('text-sm font-semibold', selected ? 'text-foreground font-bold' : 'text-foreground')}>
@@ -959,7 +967,7 @@ export default function GenerateProof() {
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
                 </div>
-              </label>
+              </div>
             );
           })}
         </div>
