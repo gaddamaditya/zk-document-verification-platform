@@ -574,10 +574,10 @@ export default function VerifyProof() {
         <button
           type="button"
           onClick={() => setShowQrScanner(true)}
-          className="group flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-2xl p-6 text-center transition-all duration-200 hover:shadow-xs hover:border-teal-500/50 cursor-pointer"
+          className="group flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-xl p-6 text-center transition-all duration-200 hover:shadow-xs hover:border-teal-500/50 cursor-pointer"
         >
-          <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
-            <QrCode className="h-7 w-7" />
+          <div className="w-10 h-10 rounded-xl border border-border bg-muted/40 flex items-center justify-center text-teal-700 dark:text-teal-300 group-hover:scale-105 transition-transform">
+            <QrCode className="h-5 w-5" />
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground mb-1">Scan QR Code</h3>
@@ -585,9 +585,9 @@ export default function VerifyProof() {
           </div>
         </button>
 
-        <div className="flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-2xl p-6 text-center">
-          <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
-            <FileUp className="h-7 w-7" />
+        <div className="flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-xl p-6 text-center">
+          <div className="w-10 h-10 rounded-xl border border-border bg-muted/40 flex items-center justify-center text-teal-700 dark:text-teal-300">
+            <FileUp className="h-5 w-5" />
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground mb-1">Upload Proof Files</h3>
@@ -735,13 +735,13 @@ export default function VerifyProof() {
             {verificationState === 'valid' && (
               <div className="space-y-4">
                 <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-6 w-6" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">Proof verified</h4>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                         <CheckCircle2 className="h-3 w-3" />
                         Verified
                       </span>
@@ -822,8 +822,8 @@ export default function VerifyProof() {
         >
           {history.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground mb-3">
-                <History className="h-6 w-6" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground mb-3">
+                <History className="h-5 w-5" />
               </div>
               <p className="text-sm font-semibold text-muted-foreground">No verification history yet.</p>
               <p className="mt-1 text-xs text-muted-foreground max-w-xs">
@@ -836,38 +836,33 @@ export default function VerifyProof() {
                 {history.map((record) => (
                   <div
                     key={record.id}
-                    className={cn(
-                      'flex items-start gap-3 rounded-xl border p-4 transition-colors',
-                      record.status === 'VALID'
-                        ? 'border-emerald-500/30 bg-emerald-500/5'
-                        : 'border-red-500/30 bg-red-500/5',
-                    )}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-xs transition-colors hover:bg-muted/30"
                   >
                     <div
                       className={cn(
-                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full mt-0.5',
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg mt-0.5 border',
                         record.status === 'VALID'
-                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-red-500/20 text-red-600 dark:text-red-400',
+                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400',
                       )}
                     >
                       {record.status === 'VALID' ? (
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CheckCircle2 className="h-4 w-4" />
                       ) : (
-                        <ShieldX className="h-5 w-5" />
+                        <ShieldX className="h-4 w-4" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={cn(
-                            'text-sm font-bold',
+                            'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-wider',
                             record.status === 'VALID'
-                              ? 'text-emerald-800 dark:text-emerald-200'
-                              : 'text-red-800 dark:text-red-200',
+                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                              : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
                           )}
                         >
-                          {record.status === 'VALID' ? 'VALID PROOF' : 'INVALID PROOF'}
+                          {record.status === 'VALID' ? 'Verified' : 'Invalid'}
                         </span>
                         {record.circuitName && (
                           <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">

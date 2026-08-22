@@ -206,24 +206,24 @@ export default function Home() {
 
         <div className="grid gap-6 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <Lock className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <Lock className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">PRIVATE</h3>
             <p className="text-xs leading-6 text-muted-foreground">Your original document stays on your device.</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <Filter className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <Filter className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">SELECTIVE</h3>
             <p className="text-xs leading-6 text-muted-foreground">Choose exactly what you want to prove.</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <FileCheck className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <FileCheck className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">VERIFIABLE</h3>
             <p className="text-xs leading-6 text-muted-foreground">Anyone with the proof can verify it.</p>
@@ -240,7 +240,7 @@ export default function Home() {
 
         {/* Desktop Horizontal Line Timeline */}
         <div className="hidden md:block relative max-w-4xl mx-auto">
-          <div className="absolute top-7 left-[12%] right-[12%] h-px bg-border z-0" />
+          <div className="absolute top-6 left-[12%] right-[12%] h-px bg-border z-0" />
           <div className="grid grid-cols-4 gap-6 relative z-10">
             {[
               { step: '01', title: 'Upload document', desc: 'Select your Aadhaar, PAN, or marksheet locally.' },
@@ -249,7 +249,7 @@ export default function Home() {
               { step: '04', title: 'Share and verify', desc: 'Share your proof link or QR code for verification.' },
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center text-center space-y-2.5">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-600 dark:text-teal-400 text-base shadow-xs">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-700 dark:text-teal-300 text-sm shadow-xs">
                   {item.step}
                 </div>
                 <h4 className="text-sm font-bold text-foreground pt-1">{item.title}</h4>
@@ -269,7 +269,7 @@ export default function Home() {
             { step: '04', title: 'Share and verify', desc: 'Share your proof link or QR code for verification.' },
           ].map((item) => (
             <div key={item.step} className="relative flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-600 dark:text-teal-400 text-xs shadow-xs z-10">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-700 dark:text-teal-300 text-xs shadow-xs z-10">
                 {item.step}
               </div>
               <div className="pt-0.5">
@@ -290,8 +290,8 @@ export default function Home() {
 
         <div className="grid gap-6 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <UserCheck className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <UserCheck className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-foreground">Aadhaar Card</h3>
             <p className="text-xs leading-5 text-muted-foreground">
@@ -300,8 +300,8 @@ export default function Home() {
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <ShieldCheck className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-foreground">PAN Card</h3>
             <p className="text-xs leading-5 text-muted-foreground">
@@ -310,8 +310,8 @@ export default function Home() {
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-600 dark:text-teal-400">
-              <FileCheck className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
+              <FileCheck className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-foreground">Academic Marksheet</h3>
             <p className="text-xs leading-5 text-muted-foreground">
