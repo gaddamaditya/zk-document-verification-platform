@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import {
   AlertCircle,
   AlertTriangle,
+  Check,
   CheckCircle2,
   Copy,
   Eye,
