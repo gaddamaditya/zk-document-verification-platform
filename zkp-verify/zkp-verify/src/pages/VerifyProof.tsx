@@ -537,22 +537,12 @@ export default function VerifyProof() {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Hero */}
-      <section className="max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-300"
-        >
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Verifier Workflow
-        </motion.div>
-
+      {/* Header Section */}
+      <section className="max-w-4xl space-y-2">
         <motion.h1
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl"
         >
           Verify a Proof
         </motion.h1>
@@ -560,36 +550,18 @@ export default function VerifyProof() {
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-2 text-base leading-7 text-muted-foreground"
+          transition={{ delay: 0.05 }}
+          className="text-sm leading-6 text-muted-foreground max-w-2xl"
         >
-          Verify claims without accessing the original document. Scan a QR link or upload proof files manually.
+          Confirm that the selected claims were cryptographically verified without exposing the underlying private data.
         </motion.p>
       </section>
 
-      {/* Progress steps */}
-      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', allFilesSelected ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground')}>1</span>
-          <span className="text-sm font-medium text-foreground">Upload / Load Proof</span>
-        </div>
-        <div className="h-px w-6 bg-border" />
-        <div className="flex items-center gap-2">
-          <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', verificationState === 'verifying' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground')}>2</span>
-          <span className="text-sm font-medium text-foreground">Verify</span>
-        </div>
-        <div className="h-px w-6 bg-border" />
-        <div className="flex items-center gap-2">
-          <span className={cn('flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold', verificationState === 'valid' || verificationState === 'invalid' || verificationState === 'expired' ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground')}>3</span>
-          <span className="text-sm font-medium text-foreground">Result</span>
-        </div>
-      </div>
-
       {/* QR Banner if loaded via QR link */}
       {qrProofId && (
-        <div className="flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-xs text-blue-800 dark:text-blue-200">
+        <div className="flex items-center justify-between rounded-xl border border-teal-500/30 bg-teal-500/10 px-4 py-3 text-xs text-teal-800 dark:text-teal-200">
           <div className="flex items-center gap-2">
-            <QrCode className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <QrCode className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
             <span>Loaded via QR / Proof Link: <strong className="font-mono">{qrProofId}</strong></span>
           </div>
           <Button variant="ghost" size="sm" onClick={reset} className="h-6 px-2 text-xs">
@@ -598,10 +570,37 @@ export default function VerifyProof() {
         </div>
       )}
 
-      {/* ── Section 1: Upload Proof Package ─────────────────────────── */}
+      {/* ── Verification Methods Grid ─────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <button
+          type="button"
+          onClick={() => setShowQrScanner(true)}
+          className="group flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-2xl p-6 text-center transition-all duration-200 hover:shadow-xs hover:border-teal-500/50 cursor-pointer"
+        >
+          <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
+            <QrCode className="h-7 w-7" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-foreground mb-1">SCAN QR CODE</h3>
+            <p className="text-xs text-muted-foreground">Scan the QR code provided by the document owner.</p>
+          </div>
+        </button>
+
+        <div className="flex flex-col items-center justify-center gap-3 bg-card border border-border rounded-2xl p-6 text-center">
+          <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
+            <FileUp className="h-7 w-7" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-foreground mb-1">UPLOAD PROOF FILES</h3>
+            <p className="text-xs text-muted-foreground">Upload the proof files (proof.json & public.json) directly from your device.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Upload Proof Files Panel ───────────────────────────── */}
       <Panel
         title="Upload Proof Package"
-        description="Select proof.json and public.json or scan a QR code directly."
+        description="Select proof.json and public.json to run mathematical verification."
         icon={FileUp}
       >
         {/* QR Code Action Option */}

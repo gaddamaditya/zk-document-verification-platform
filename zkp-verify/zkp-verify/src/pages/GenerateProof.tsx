@@ -492,52 +492,40 @@ export default function GenerateProof() {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Hero */}
-      <section className="max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300"
-        >
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Prover Workflow
-        </motion.div>
-
+      {/* Header & Subtitle */}
+      <section className="max-w-4xl space-y-2">
         <motion.h1
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl"
         >
-          Prove a Claim
+          Generate Zero-Knowledge Proof
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-2 text-base leading-7 text-muted-foreground"
+          transition={{ delay: 0.05 }}
+          className="text-sm leading-6 text-muted-foreground max-w-2xl"
         >
-          Generate a privacy-preserving zero-knowledge proof from your document without revealing sensitive information.
+          Transform your sensitive documents into cryptographic proofs. Share verified facts without revealing the underlying data.
         </motion.p>
       </section>
 
-      {/* Progress steps */}
+      {/* Workflow Progress Indicator */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="flex flex-wrap items-center gap-4 sm:gap-6 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs"
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs"
       >
-        <StepIndicator step={1} label="Upload" active={currentStep === 1} completed={documentUploaded} />
+        <StepIndicator step={1} label="01 Add Document" active={currentStep === 1} completed={documentUploaded} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={2} label="OCR Results" active={currentStep === 2} completed={ocrReady} />
+        <StepIndicator step={2} label="02 Choose Claims" active={currentStep === 2 || currentStep === 3} completed={ocrReady && hasSelectedClaims} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={3} label="Select Claims" active={currentStep === 3} completed={ocrReady && hasSelectedClaims} />
+        <StepIndicator step={3} label="03 Generate Proof" active={currentStep === 4} completed={proofGenerated} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={4} label="Generate" active={currentStep === 4} completed={proofGenerated} />
-        <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={5} label="Download / Share" active={currentStep === 5} completed={false} />
+        <StepIndicator step={4} label="04 Download / Share" active={currentStep === 5} completed={false} />
       </motion.div>
 
       {/* ── Step 1: Upload Document ─────────────────────────────── */}
