@@ -131,7 +131,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
-          className="relative w-full max-w-lg mx-auto py-8 px-4 flex items-center justify-center min-h-[320px]"
+          className="relative w-full max-w-xl mx-auto py-8 px-2 sm:px-4 flex items-center justify-center min-h-[350px] overflow-hidden sm:overflow-visible"
         >
           {/* Card 1: Aadhaar Card (Left / Back) */}
           <motion.div
@@ -139,12 +139,12 @@ export default function Home() {
             dragSnapToOrigin
             dragElastic={0.12}
             dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }}
-            className="absolute top-2 left-2 sm:left-4 w-[210px] sm:w-[230px] rounded-xl border border-border bg-card p-3.5 shadow-sm transform -rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
+            className="absolute top-1 -left-2 sm:-left-6 w-[240px] sm:w-[270px] rounded-xl border border-border bg-card p-4 sm:p-4.5 shadow-sm transform -rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
           >
-            <div className="flex justify-between items-start border-b border-border pb-2 mb-2.5">
+            <div className="flex justify-between items-start border-b border-border pb-2.5 mb-3">
               <div>
-                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Aadhaar</span>
-                <span className="text-xs font-mono font-semibold text-foreground">XXXX XXXX 4821</span>
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-muted-foreground block">Aadhaar</span>
+                <span className="text-xs sm:text-sm font-mono font-semibold text-foreground">XXXX XXXX 4821</span>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.65rem] font-semibold text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-3 w-3" />
@@ -153,12 +153,12 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-8 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
-                <User className="h-4 w-4" />
+              <div className="flex h-10 w-9 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
+                <User className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
-                <span className="text-xs font-semibold text-foreground truncate block">Leo Das</span>
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
+                <span className="text-xs sm:text-sm font-semibold text-foreground truncate block">Leo Das</span>
               </div>
             </div>
           </motion.div>
@@ -169,12 +169,12 @@ export default function Home() {
             dragSnapToOrigin
             dragElastic={0.12}
             dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }}
-            className="absolute top-4 right-2 sm:right-4 w-[210px] sm:w-[230px] rounded-xl border border-border bg-card p-3.5 shadow-sm transform rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
+            className="absolute top-3 -right-2 sm:-right-6 w-[240px] sm:w-[270px] rounded-xl border border-border bg-card p-4 sm:p-4.5 shadow-sm transform rotate-6 z-10 hover:z-30 cursor-grab active:cursor-grabbing transition-shadow"
           >
-            <div className="flex justify-between items-start border-b border-border pb-2 mb-2.5">
+            <div className="flex justify-between items-start border-b border-border pb-2.5 mb-3">
               <div>
-                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">PAN</span>
-                <span className="text-xs font-mono font-semibold text-foreground">ABCDE1234F</span>
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-muted-foreground block">PAN</span>
+                <span className="text-xs sm:text-sm font-mono font-semibold text-foreground">ABCDE1234F</span>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[0.65rem] font-semibold text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-3 w-3" />
@@ -183,18 +183,18 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-8 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
-                <User className="h-4 w-4" />
+              <div className="flex h-10 w-9 shrink-0 items-center justify-center rounded border border-border bg-muted/30 text-muted-foreground">
+                <User className="h-4.5 w-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
-                <span className="text-xs font-semibold text-foreground truncate block">Miles Morales</span>
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-muted-foreground block">Holder</span>
+                <span className="text-xs sm:text-sm font-semibold text-foreground truncate block">Miles Morales</span>
               </div>
             </div>
           </motion.div>
 
           {/* Card 3: Proof Verified Card (Center / Front) */}
-          <div className="relative z-20 w-[240px] sm:w-[260px] rounded-xl border border-border bg-card p-4 shadow-md mt-14 sm:mt-16 transition-shadow hover:shadow-lg">
+          <div className="relative z-20 w-[240px] sm:w-[260px] rounded-xl border border-border bg-card p-4 shadow-md mt-16 sm:mt-20 transition-shadow hover:shadow-lg">
             <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-border">
               <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <h4 className="text-xs font-bold text-foreground">Proof Verified</h4>
