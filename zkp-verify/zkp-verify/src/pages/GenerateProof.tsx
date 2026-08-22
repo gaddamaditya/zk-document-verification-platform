@@ -508,7 +508,7 @@ export default function GenerateProof() {
           transition={{ delay: 0.05 }}
           className="text-sm leading-6 text-muted-foreground max-w-2xl"
         >
-          Transform your sensitive documents into verification proofs without sharing the raw file.
+          Choose the information you want to prove without sharing the full document.
         </motion.p>
       </section>
 
@@ -517,15 +517,15 @@ export default function GenerateProof() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs"
+        className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:p-5 shadow-xs"
       >
-        <StepIndicator step={1} label="01 Add Document" active={currentStep === 1} completed={documentUploaded} />
+        <StepIndicator step={1} label="01 Document" active={currentStep === 1} completed={documentUploaded} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={2} label="02 Choose Claims" active={currentStep === 2 || currentStep === 3} completed={ocrReady && hasSelectedClaims} />
+        <StepIndicator step={2} label="02 Claims" active={currentStep === 2 || currentStep === 3} completed={ocrReady && hasSelectedClaims} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={3} label="03 Generate Proof" active={currentStep === 4} completed={proofGenerated} />
+        <StepIndicator step={3} label="03 Generate" active={currentStep === 4} completed={proofGenerated} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={4} label="04 Download / Share" active={currentStep === 5} completed={false} />
+        <StepIndicator step={4} label="04 Download" active={currentStep === 5} completed={false} />
       </motion.div>
 
       {/* ── Step 1: Upload Document ─────────────────────────────── */}
@@ -691,12 +691,12 @@ export default function GenerateProof() {
         >
           <Panel
             title="Document Authenticity"
-            description="Verify the integrity and authenticity of the uploaded document using its digital signature."
+            description="Verify document integrity and digital signatures."
             icon={ShieldCheck}
           >
             <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6 mb-4">
               <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
-              Upload the digitally signed credential associated with this document to verify its integrity and issuer signature.
+              Upload the credential file to check that the file has not changed since issuance.
             </div>
 
             <input

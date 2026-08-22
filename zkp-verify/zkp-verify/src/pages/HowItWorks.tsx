@@ -39,7 +39,7 @@ export default function HowItWorks() {
           transition={{ delay: 0.1 }}
           className="text-base leading-7 text-slate-600 dark:text-slate-300 max-w-3xl"
         >
-          This page explains the technical pipeline behind privacy-preserving document verification using Zero-Knowledge Proofs — from document intake to proof verification.
+          Your document contains more information than the verifier needs. ZKVERIFY lets you prove a specific fact without sharing everything else.
         </motion.p>
       </section>
 

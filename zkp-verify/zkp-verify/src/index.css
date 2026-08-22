@@ -36,62 +36,62 @@
 }
 
 :root {
-  /* REFINED LIGHT THEME */
+  /* REALISTIC SECURITY PRODUCT LIGHT THEME */
   --background: 150 7% 97%; /* #F7F9F8 */
-  --foreground: 200 25% 12%; /* #172126 */
+  --foreground: 165 25% 7%; /* #111817 */
 
-  --border: 160 11% 88%; /* #DDE5E3 */
-  --input: 160 11% 88%;
-  --ring: 174 88% 26%;
+  --border: 160 10% 88%; /* #DCE5E2 */
+  --input: 160 10% 88%;
+  --ring: 176 100% 24%;
 
   --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 200 25% 12%;
+  --card-foreground: 165 25% 7%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 200 25% 12%;
+  --popover-foreground: 165 25% 7%;
 
-  --primary: 174 88% 26%; /* #087F73 */
+  --primary: 176 100% 24%; /* #007A72 */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 200 18% 93%;
-  --secondary-foreground: 200 25% 12%;
+  --secondary: 168 45% 93%; /* #E4F5F2 */
+  --secondary-foreground: 165 25% 7%;
 
   --muted: 150 10% 94%;
-  --muted-foreground: 202 9% 44%; /* #66737A */
+  --muted-foreground: 170 7% 35%; /* #53605E */
 
-  --accent: 150 10% 94%;
-  --accent-foreground: 200 25% 12%;
+  --accent: 168 45% 93%;
+  --accent-foreground: 165 25% 7%;
 
   --app-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --radius: 0.875rem;
+  --radius: 0.75rem; /* 12px max radius */
 }
 
 .dark {
-  /* REFINED DARK THEME */
-  --background: 165 21% 5%; /* #0B1110 */
-  --foreground: 165 14% 95%; /* #F1F5F4 */
+  /* REALISTIC SECURITY PRODUCT DARK THEME */
+  --background: 165 20% 5%; /* #0B100F */
+  --foreground: 165 10% 95%; /* #F2F5F4 */
 
-  --border: 171 13% 17%; /* #263331 */
-  --input: 171 13% 17%;
-  --ring: 171 55% 46%;
+  --border: 170 14% 17%; /* #263330 */
+  --input: 170 14% 17%;
+  --ring: 174 76% 41%;
 
-  --card: 170 19% 8%; /* #111918 */
-  --card-foreground: 165 14% 95%;
+  --card: 170 15% 8%; /* #111817 */
+  --card-foreground: 165 10% 95%;
 
-  --popover: 170 19% 8%;
-  --popover-foreground: 165 14% 95%;
+  --popover: 170 15% 8%;
+  --popover-foreground: 165 10% 95%;
 
-  --primary: 171 55% 46%; /* #35B8A5 */
-  --primary-foreground: 165 21% 5%;
+  --primary: 174 76% 41%; /* #19B8A9 */
+  --primary-foreground: 165 20% 5%;
 
-  --secondary: 171 16% 11%; /* #17201F */
-  --secondary-foreground: 165 14% 95%;
+  --secondary: 174 54% 15%; /* #123C38 */
+  --secondary-foreground: 165 10% 95%;
 
-  --muted: 171 16% 11%;
-  --muted-foreground: 168 9% 67%; /* #A5B3B0 */
+  --muted: 168 14% 10%; /* #151D1B */
+  --muted-foreground: 167 8% 69%; /* #AAB7B4 */
 
-  --accent: 171 16% 12%;
-  --accent-foreground: 165 14% 95%;
+  --accent: 174 54% 15%;
+  --accent-foreground: 165 10% 95%;
 }
 
 @layer base {
