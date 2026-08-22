@@ -12,7 +12,6 @@ import {
   FileUp,
   Loader2,
   QrCode as QrIcon,
-  ShieldAlert,
   ShieldCheck,
   ShieldX,
   Upload,
@@ -704,13 +703,12 @@ export default function GenerateProof() {
         >
           <Panel
             title="Document Authenticity"
-            description="Optional: Upload an issuer credential to verify document integrity and issuer authenticity."
+            description="Verify the integrity and authenticity of the uploaded document using its digital signature."
             icon={ShieldCheck}
           >
             <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6 mb-4">
               <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
-              This verifies that the document was signed by a <strong>simulated trusted issuer (Demo University)</strong> and has not been modified.
-              This is a research prototype — not a real government or institutional verification.
+              Upload the digitally signed credential associated with this document to verify its integrity and issuer signature.
             </div>
 
             <input
@@ -729,7 +727,7 @@ export default function GenerateProof() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                   <div>
-                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Credential File</p>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Issuer Credential</p>
                     <p className="text-xs text-emerald-700 dark:text-emerald-300 opacity-80">{credentialFile.name}</p>
                   </div>
                 </div>
@@ -753,8 +751,8 @@ export default function GenerateProof() {
                       <ShieldCheck className="h-5 w-5" />
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-bold text-foreground">credential.json</p>
-                      <p className="text-xs text-muted-foreground">Issuer-signed credential file (.credential.json)</p>
+                      <p className="text-sm font-bold text-foreground">Issuer Credential</p>
+                      <p className="text-xs text-muted-foreground">Upload the digitally signed credential associated with this document.</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => credentialInputRef.current?.click()}>
@@ -792,24 +790,20 @@ export default function GenerateProof() {
                   <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   AUTHENTIC DOCUMENT
                 </div>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  Document integrity verified.
+                </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Trusted Issuer</p>
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Digital Signature</p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      VALID
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issuer</p>
                     <p className="mt-1 text-sm font-semibold text-foreground">{authenticityResult.issuer}</p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Document Integrity</p>
-                    <p className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Verified
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issuer Signature</p>
-                    <p className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Valid
-                    </p>
                   </div>
                   {authenticityResult.issuedAt && (
                     <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
@@ -819,10 +813,6 @@ export default function GenerateProof() {
                       </p>
                     </div>
                   )}
-                </div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground leading-6">
-                  <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-emerald-500" />
-                  Verified by simulated trusted issuer. This is a research prototype demonstration.
                 </div>
               </div>
             )}
@@ -834,23 +824,14 @@ export default function GenerateProof() {
                   TAMPERED DOCUMENT
                 </div>
                 <p className="text-xs text-red-700 dark:text-red-300">
-                  {authenticityResult.message || 'The document has been modified after it was issued.'}
+                  Document integrity verification failed.
                 </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-xl border border-red-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Document Integrity</p>
-                    <p className="mt-1 text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
-                      <ShieldX className="h-3.5 w-3.5" />
-                      Failed
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-red-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
-                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issuer Signature</p>
-                    <p className="mt-1 text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
-                      <ShieldX className="h-3.5 w-3.5" />
-                      Invalid
-                    </p>
-                  </div>
+                <div className="rounded-xl border border-red-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                  <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Digital Signature</p>
+                  <p className="mt-1 text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                    <ShieldX className="h-3.5 w-3.5" />
+                    INVALID
+                  </p>
                 </div>
               </div>
             )}
