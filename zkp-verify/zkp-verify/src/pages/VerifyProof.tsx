@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Clock,
   FileJson,
@@ -755,7 +756,7 @@ export default function VerifyProof() {
                 {verifiedClaims.length > 0 && (
                   <div className="rounded-xl border border-border bg-card p-4 space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Verified Claims:
+                      Zero-Knowledge Verified Claims:
                     </p>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {verifiedClaims.map((claim) => (
@@ -767,6 +768,12 @@ export default function VerifyProof() {
                     </div>
                   </div>
                 )}
+
+                {/* Privacy disclaimer */}
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground leading-6">
+                  <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-emerald-500" />
+                  The original document was <strong>not revealed</strong>. Only the mathematical proof of the selected claims was verified.
+                </div>
               </div>
             )}
 

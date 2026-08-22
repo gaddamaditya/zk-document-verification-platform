@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import QRCode from 'qrcode';
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Copy,
   Eye,
@@ -11,7 +12,9 @@ import {
   FileUp,
   Loader2,
   QrCode as QrIcon,
+  ShieldAlert,
   ShieldCheck,
+  ShieldX,
   Upload,
   X,
   Zap,
@@ -193,6 +196,21 @@ export default function GenerateProof() {
   // Document preview state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // Authenticity verification state
+  const [credentialFile, setCredentialFile] = useState<File | null>(null);
+  const [authenticityLoading, setAuthenticityLoading] = useState(false);
+  const [authenticityResult, setAuthenticityResult] = useState<{
+    success: boolean;
+    status: 'AUTHENTIC' | 'TAMPERED' | 'UNTRUSTED_ISSUER';
+    issuer?: string;
+    integrity?: string;
+    signature?: string;
+    message?: string;
+    issuedAt?: string;
+  } | null>(null);
+  const [authenticityError, setAuthenticityError] = useState<string | null>(null);
+  const credentialInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileSelected = (file: File) => {
     // Revoke previous preview URL to prevent memory leaks
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -225,7 +243,53 @@ export default function GenerateProof() {
     setOcrError(null);
     setSelectedClaims([]);
     setGenerateResult(null);
+    setCredentialFile(null);
+    setAuthenticityResult(null);
+    setAuthenticityError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (credentialInputRef.current) credentialInputRef.current.value = '';
+  };
+
+  const handleCredentialSelected = (file: File) => {
+    setCredentialFile(file);
+    setAuthenticityResult(null);
+    setAuthenticityError(null);
+  };
+
+  const clearCredential = () => {
+    setCredentialFile(null);
+    setAuthenticityResult(null);
+    setAuthenticityError(null);
+    if (credentialInputRef.current) credentialInputRef.current.value = '';
+  };
+
+  const verifyAuthenticity = async () => {
+    if (!selectedFile || !credentialFile) return;
+    setAuthenticityLoading(true);
+    setAuthenticityError(null);
+    setAuthenticityResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('document', selectedFile);
+      formData.append('credential', credentialFile);
+
+      const url = `${API_BASE_URL}/api/verify-authenticity`;
+      const res = await fetch(url, { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (!res.ok && !data.status) {
+        setAuthenticityError(data.message || `Verification failed (HTTP ${res.status})`);
+        return;
+      }
+
+      setAuthenticityResult(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setAuthenticityError(`Authenticity verification failed: ${message}`);
+    } finally {
+      setAuthenticityLoading(false);
+    }
   };
 
   // Cleanup preview URL on unmount
@@ -627,6 +691,188 @@ export default function GenerateProof() {
               <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
               Preview is displayed locally. Your original document is not shared with the verifier.
             </div>
+          </Panel>
+        </motion.div>
+      )}
+
+      {/* ── Document Authenticity Verification (Optional) ──────── */}
+      {selectedFile && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Panel
+            title="Document Authenticity"
+            description="Optional: Upload an issuer credential to verify document integrity and issuer authenticity."
+            icon={ShieldCheck}
+          >
+            <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6 mb-4">
+              <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
+              This verifies that the document was signed by a <strong>simulated trusted issuer (Demo University)</strong> and has not been modified.
+              This is a research prototype — not a real government or institutional verification.
+            </div>
+
+            <input
+              ref={credentialInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleCredentialSelected(f);
+              }}
+            />
+
+            {credentialFile ? (
+              <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Credential File</p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 opacity-80">{credentialFile.name}</p>
+                  </div>
+                </div>
+                <button type="button" onClick={clearCredential} className="rounded-full p-1 hover:bg-muted">
+                  <X className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
+                </button>
+              </div>
+            ) : (
+              <div
+                className="rounded-xl border-2 border-dashed border-border bg-muted/30 px-5 py-5 text-center transition-colors hover:border-teal-500/50 hover:bg-muted/50 mb-4"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) handleCredentialSelected(f);
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-teal-600 dark:text-teal-400">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-foreground">credential.json</p>
+                      <p className="text-xs text-muted-foreground">Issuer-signed credential file (.credential.json)</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => credentialInputRef.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1" />
+                    Browse
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              <Button
+                disabled={!selectedFile || !credentialFile || authenticityLoading}
+                onClick={verifyAuthenticity}
+                className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
+              >
+                {authenticityLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verifying…
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" />
+                    Verify Authenticity
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Authenticity Result */}
+            {authenticityResult && authenticityResult.status === 'AUTHENTIC' && (
+              <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 space-y-3">
+                <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  AUTHENTIC DOCUMENT
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Trusted Issuer</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{authenticityResult.issuer}</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Document Integrity</p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Verified
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issuer Signature</p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Valid
+                    </p>
+                  </div>
+                  {authenticityResult.issuedAt && (
+                    <div className="rounded-xl border border-emerald-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                      <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issued At</p>
+                      <p className="mt-1 text-xs font-medium text-foreground">
+                        {new Date(authenticityResult.issuedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground leading-6">
+                  <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-emerald-500" />
+                  Verified by simulated trusted issuer. This is a research prototype demonstration.
+                </div>
+              </div>
+            )}
+
+            {authenticityResult && authenticityResult.status === 'TAMPERED' && (
+              <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 space-y-3">
+                <div className="flex items-center gap-2 text-base font-bold text-red-800 dark:text-red-200">
+                  <ShieldX className="h-5 w-5 text-red-500" />
+                  TAMPERED DOCUMENT
+                </div>
+                <p className="text-xs text-red-700 dark:text-red-300">
+                  {authenticityResult.message || 'The document has been modified after it was issued.'}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-xl border border-red-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Document Integrity</p>
+                    <p className="mt-1 text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                      <ShieldX className="h-3.5 w-3.5" />
+                      Failed
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-red-500/20 bg-white/40 dark:bg-slate-900/40 p-3">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground">Issuer Signature</p>
+                    <p className="mt-1 text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                      <ShieldX className="h-3.5 w-3.5" />
+                      Invalid
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {authenticityResult && authenticityResult.status === 'UNTRUSTED_ISSUER' && (
+              <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-3">
+                <div className="flex items-center gap-2 text-base font-bold text-amber-800 dark:text-amber-200">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  UNTRUSTED ISSUER
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  {authenticityResult.message || 'The document could not be verified against a trusted issuer.'}
+                </p>
+              </div>
+            )}
+
+            {authenticityError && (
+              <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-700 dark:text-red-300">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{authenticityError}</span>
+              </div>
+            )}
           </Panel>
         </motion.div>
       )}

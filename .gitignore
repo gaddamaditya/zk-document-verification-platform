@@ -33,3 +33,8 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Issuer private keys (Ed25519 authenticity layer)
+**/issuer/keys/
+**/private-key.pem
+**/*.credential.json

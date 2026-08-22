@@ -43,6 +43,7 @@ const optionalRoutes = [
   { path: '/api/verify-proof',   module: './routes/verifyProof' },
   { path: '/api/ocr',            module: './routes/ocr' },
   { path: '/api/proof',          module: './routes/getProof' },
+  { path: '/api/verify-authenticity', module: './routes/authenticityVerifier' },
 ];
 
 for (const route of optionalRoutes) {
