@@ -36,62 +36,62 @@
 }
 
 :root {
-  /* LIGHT THEME */
-  --background: 210 40% 98%; /* #F8FAFC */
-  --foreground: 222 47% 11%; /* #0F172A */
+  /* REFINED LIGHT THEME */
+  --background: 150 7% 97%; /* #F7F9F8 */
+  --foreground: 200 25% 12%; /* #172126 */
 
-  --border: 214 32% 91%; /* #E2E8F0 */
-  --input: 214 32% 91%;
-  --ring: 175 84% 32%;
+  --border: 160 11% 88%; /* #DDE5E3 */
+  --input: 160 11% 88%;
+  --ring: 174 88% 26%;
 
   --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 200 25% 12%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 200 25% 12%;
 
-  --primary: 175 84% 32%; /* Teal #0D9488 */
+  --primary: 174 88% 26%; /* #087F73 */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 91% 55%; /* Blue #2563EB */
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 200 18% 93%;
+  --secondary-foreground: 200 25% 12%;
 
-  --muted: 210 40% 96%; /* #F1F5F9 */
-  --muted-foreground: 215 16% 47%; /* #64748B */
+  --muted: 150 10% 94%;
+  --muted-foreground: 202 9% 44%; /* #66737A */
 
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 150 10% 94%;
+  --accent-foreground: 200 25% 12%;
 
   --app-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 }
 
 .dark {
-  /* DARK THEME - #0F1115 background, #161A21 surface, #2A3038 borders */
-  --background: 220 18% 7%; /* #0F1115 */
-  --foreground: 210 20% 98%; /* #F8FAFC */
+  /* REFINED DARK THEME */
+  --background: 165 21% 5%; /* #0B1110 */
+  --foreground: 165 14% 95%; /* #F1F5F4 */
 
-  --border: 220 14% 19%; /* #2A3038 */
-  --input: 220 14% 19%;
-  --ring: 175 84% 40%;
+  --border: 171 13% 17%; /* #263331 */
+  --input: 171 13% 17%;
+  --ring: 171 55% 46%;
 
-  --card: 220 18% 10%; /* #161A21 */
-  --card-foreground: 210 20% 98%;
+  --card: 170 19% 8%; /* #111918 */
+  --card-foreground: 165 14% 95%;
 
-  --popover: 220 18% 10%;
-  --popover-foreground: 210 20% 98%;
+  --popover: 170 19% 8%;
+  --popover-foreground: 165 14% 95%;
 
-  --primary: 175 84% 38%; /* Teal #0D9488 / #14B8A6 */
-  --primary-foreground: 0 0% 100%;
+  --primary: 171 55% 46%; /* #35B8A5 */
+  --primary-foreground: 165 21% 5%;
 
-  --secondary: 217 91% 60%; /* Blue #3B82F6 */
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 171 16% 11%; /* #17201F */
+  --secondary-foreground: 165 14% 95%;
 
-  --muted: 220 18% 14%; /* #1C2129 */
-  --muted-foreground: 215 15% 65%; /* #94A3B8 */
+  --muted: 171 16% 11%;
+  --muted-foreground: 168 9% 67%; /* #A5B3B0 */
 
-  --accent: 220 18% 15%;
-  --accent-foreground: 210 20% 98%;
+  --accent: 171 16% 12%;
+  --accent-foreground: 165 14% 95%;
 }
 
 @layer base {

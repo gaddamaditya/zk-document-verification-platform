@@ -77,7 +77,7 @@ export default function Home() {
           transition={{ delay: 0.05 }}
           className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl max-w-3xl mx-auto leading-tight"
         >
-          Prove what is true without revealing your document.
+          Verify documents without exposing them.
         </motion.h1>
 
         <motion.p
@@ -86,7 +86,7 @@ export default function Home() {
           transition={{ delay: 0.08 }}
           className="text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed"
         >
-          Zero-knowledge proofs enable instant, cryptographic verification of identity and document facts without disclosing sensitive raw files or personal details.
+          Zero-knowledge proofs enable instant, cryptographic verification of document facts without disclosing sensitive raw files or personal details.
         </motion.p>
 
         <motion.div
@@ -97,26 +97,26 @@ export default function Home() {
         >
           <div
             onClick={() => setRole('prover')}
-            className="w-full sm:w-80 cursor-pointer rounded-xl border border-teal-500/30 bg-teal-500/5 p-6 text-left transition-all hover:border-teal-500/60 dark:hover:bg-teal-500/10 shadow-xs group"
+            className="w-full sm:w-80 cursor-pointer rounded-2xl border border-teal-500/30 bg-teal-500/5 p-6 text-left transition-all hover:border-teal-500/60 dark:hover:bg-teal-500/10 shadow-xs group"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">For Provers</span>
               <ShieldCheck className="h-4 w-4 text-teal-500" />
             </div>
             <h3 className="mt-2 text-lg font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-              PROVE A CLAIM
+              GENERATE PROOF
             </h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Upload a document and generate a privacy-preserving proof.
+              Upload a document locally and generate a privacy-preserving zero-knowledge proof.
             </p>
             <Button size="sm" className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600">
-              Start Prover Flow →
+              Generate Proof →
             </Button>
           </div>
 
           <div
             onClick={() => setRole('verifier')}
-            className="w-full sm:w-80 cursor-pointer rounded-xl border border-blue-500/30 bg-blue-500/5 p-6 text-left transition-all hover:border-blue-500/60 dark:hover:bg-blue-500/10 shadow-xs group"
+            className="w-full sm:w-80 cursor-pointer rounded-2xl border border-blue-500/30 bg-blue-500/5 p-6 text-left transition-all hover:border-blue-500/60 dark:hover:bg-blue-500/10 shadow-xs group"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">For Verifiers</span>
@@ -126,10 +126,10 @@ export default function Home() {
               VERIFY A PROOF
             </h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Verify a proof received from another person without seeing their file.
+              Verify a proof received via QR code, link, or files without seeing the raw document.
             </p>
             <Button size="sm" variant="secondary" className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
-              Start Verifier Flow →
+              Verify a Proof →
             </Button>
           </div>
         </motion.div>
