@@ -380,18 +380,46 @@ export default function GenerateProof() {
     }
   };
 
-  const toggleClaim = (id: string) => {
+  const isMarksheet = ocrData?.documentType === 'MARKSHEET';
+  const claimOptions = isMarksheet ? MARKSHEET_CLAIMS : AADHAAR_CLAIMS;
+
+  const isAttributeDetected = (attrKey: string) => {
+    if (!ocrData || !ocrData.attributes) return true;
+    const attrs = ocrData.attributes;
+    if (attrKey === 'studentName') return Boolean(attrs.studentName || attrs.name);
+    if (attrKey === 'cgpa') return Boolean(attrs.cgpa || attrs.grade);
+    if (attrKey === 'aadhaarNumber') return Boolean(attrs.aadhaarNumber || attrs.documentNumber);
+    if (attrKey === 'grandTotal') return Boolean(attrs.grandTotal || attrs.result || attrs.marks);
+    if (attrKey === 'result') return Boolean(attrs.result || attrs.grade);
+    if (attrKey === 'grade') return Boolean(attrs.grade || attrs.cgpa);
+    return Boolean(attrs[attrKey]);
+  };
+
+  const toggleClaim = (id: string, available = true) => {
+    if (!available) return;
     setSelectedClaims((current) =>
       current.includes(id) ? current.filter((claimId) => claimId !== id) : [...current, id],
     );
   };
 
-  const isMarksheet = ocrData?.documentType === 'MARKSHEET';
-  const claimOptions = isMarksheet ? MARKSHEET_CLAIMS : AADHAAR_CLAIMS;
+  // Auto-prune selected claims if they are no longer supported by current document / OCR data
+  useEffect(() => {
+    if (ocrData) {
+      setSelectedClaims((current) =>
+        current.filter((claimId) => {
+          const claim = claimOptions.find((c) => c.id === claimId);
+          return claim ? isAttributeDetected(claim.attrKey) : false;
+        })
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ocrData]);
 
   const selectAllClaims = () => {
-    const allIds = claimOptions.map((c) => c.id);
-    setSelectedClaims(allIds);
+    const available = claimOptions
+      .filter((c) => isAttributeDetected(c.attrKey))
+      .map((c) => c.id);
+    setSelectedClaims(available);
   };
 
   const clearAllClaims = () => {
@@ -399,7 +427,12 @@ export default function GenerateProof() {
   };
 
   const generateProof = async () => {
-    if (!uploadResult || selectedClaims.length === 0) return;
+    const validClaims = selectedClaims.filter((claimId) => {
+      const claim = claimOptions.find((c) => c.id === claimId);
+      return claim ? isAttributeDetected(claim.attrKey) : false;
+    });
+
+    if (!uploadResult || validClaims.length === 0) return;
     setGenerating(true);
     setGenerateError(null);
     setGenerateResult(null);
@@ -412,7 +445,7 @@ export default function GenerateProof() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileId: uploadResult.id,
-          claims: selectedClaims,
+          claims: validClaims,
         }),
       });
 
@@ -946,6 +979,7 @@ export default function GenerateProof() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           {claimOptions.map((claim) => {
+            const detected = isAttributeDetected(claim.attrKey);
             const selected = selectedClaims.includes(claim.id);
 
             return (
@@ -953,33 +987,42 @@ export default function GenerateProof() {
                 key={claim.id}
                 role="checkbox"
                 aria-checked={selected}
-                tabIndex={0}
-                onClick={() => toggleClaim(claim.id)}
+                aria-disabled={!detected}
+                tabIndex={detected ? 0 : -1}
+                onClick={() => toggleClaim(claim.id, detected)}
                 onKeyDown={(e) => {
-                  if (e.key === ' ' || e.key === 'Enter') {
+                  if (detected && (e.key === ' ' || e.key === 'Enter')) {
                     e.preventDefault();
-                    toggleClaim(claim.id);
+                    toggleClaim(claim.id, detected);
                   }
                 }}
                 className={cn(
-                  'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-all cursor-pointer select-none',
-                  selected
-                    ? 'border-primary/50 bg-primary/5 text-foreground shadow-xs'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:bg-muted/30',
+                  'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-all select-none',
+                  !detected
+                    ? 'border-border bg-muted/20 text-muted-foreground opacity-50 cursor-not-allowed'
+                    : selected
+                      ? 'border-primary/50 bg-primary/5 text-foreground shadow-xs cursor-pointer'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:bg-muted/30 cursor-pointer',
                 )}
               >
                 <input
                   type="checkbox"
                   checked={selected}
+                  disabled={!detected}
                   readOnly
                   tabIndex={-1}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 mt-0.5 shrink-0 cursor-pointer accent-teal-600 dark:accent-teal-400 pointer-events-none"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 mt-0.5 shrink-0 accent-teal-600 dark:accent-teal-400 pointer-events-none"
                 />
                 <div className="flex-1 min-w-0">
                   <p className={cn('text-sm font-semibold', selected ? 'text-foreground font-bold' : 'text-foreground')}>
                     {claim.label}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
+                  {!detected && (
+                    <p className="text-[0.7rem] font-medium text-amber-600 dark:text-amber-400 mt-1">
+                      Not detected in this document
+                    </p>
+                  )}
                 </div>
               </div>
             );
