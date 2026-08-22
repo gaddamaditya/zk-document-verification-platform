@@ -734,20 +734,12 @@ export default function VerifyProof() {
 
             {verificationState === 'valid' && (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                  </div>
+                <div className="flex items-start gap-3 rounded-lg border-l-4 border-l-emerald-500 border border-border bg-emerald-500/5 p-4">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-100">Proof verified</h4>
-                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Verified
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
-                      These claims were successfully verified.
+                    <h4 className="text-sm font-bold text-foreground">Proof verified</h4>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      The cryptographic proof was successfully verified.
                     </p>
                   </div>
                 </div>
@@ -777,20 +769,12 @@ export default function VerifyProof() {
             )}
 
             {verificationState === 'invalid' && (
-              <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-600 dark:text-red-400">
-                  <ShieldX className="h-6 w-6" />
-                </div>
+              <div className="flex items-start gap-3 rounded-lg border-l-4 border-l-red-500 border border-border bg-red-500/5 p-4">
+                <ShieldX className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-base font-bold text-red-900 dark:text-red-100">INVALID PROOF</h4>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-red-500/40 bg-red-500/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-red-700 dark:text-red-300">
-                      <ShieldX className="h-3 w-3" />
-                      INVALID
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">
-                    The zero-knowledge proof mathematical verification failed.
+                  <h4 className="text-sm font-bold text-foreground">Proof could not be verified</h4>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    The cryptographic verification failed.
                   </p>
                 </div>
               </div>
@@ -832,68 +816,68 @@ export default function VerifyProof() {
             </div>
           ) : (
             <>
-              <div className="space-y-3">
-                {history.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-xs transition-colors hover:bg-muted/30"
-                  >
-                    <div
-                      className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg mt-0.5 border',
-                        record.status === 'VALID'
-                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400',
-                      )}
-                    >
-                      {record.status === 'VALID' ? (
-                        <CheckCircle2 className="h-4 w-4" />
-                      ) : (
-                        <ShieldX className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-wider',
-                            record.status === 'VALID'
-                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                              : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-muted/50 border-b border-border text-muted-foreground uppercase tracking-wider text-[0.68rem] font-bold">
+                    <tr>
+                      <th className="px-4 py-2.5">Status</th>
+                      <th className="px-4 py-2.5">Claim</th>
+                      <th className="px-4 py-2.5">Proof ID</th>
+                      <th className="px-4 py-2.5 text-right">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border font-medium">
+                    {history.map((record) => (
+                      <tr key={record.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {record.status === 'VALID' ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Valid
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold">
+                              <ShieldX className="h-3.5 w-3.5" />
+                              Invalid
+                            </span>
                           )}
-                        >
-                          {record.status === 'VALID' ? 'Verified' : 'Invalid'}
+                        </td>
+                        <td className="px-4 py-3 text-foreground font-semibold">
+                          {record.claims.length > 0 ? record.claims.join(' · ') : record.circuitName || 'Document Claim'}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-muted-foreground">
+                          {record.proofId || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-right text-muted-foreground whitespace-nowrap">
+                          {new Date(record.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' + new Date(record.timestamp).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Compact List View */}
+              <div className="md:hidden space-y-2">
+                {history.map((record) => (
+                  <div key={record.id} className="rounded-lg border border-border bg-card p-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      {record.status === 'VALID' ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Valid
                         </span>
-                        {record.circuitName && (
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
-                            {record.circuitName}
-                          </span>
-                        )}
-                      </div>
-                      {record.claims.length > 0 && (
-                        <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                          {record.claims.join(' · ')}
-                        </p>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold">
+                          <ShieldX className="h-3.5 w-3.5" /> Invalid
+                        </span>
                       )}
-                      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.7rem] text-muted-foreground">
-                        {record.proofId && (
-                          <span className="font-mono font-medium">{record.proofId}</span>
-                        )}
-                        <span>
-                          {new Date(record.timestamp).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                          {', '}
-                          {new Date(record.timestamp).toLocaleTimeString('en-IN', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                        </span>
-                      </div>
+                      <span className="text-[0.7rem] text-muted-foreground font-mono">{record.proofId}</span>
                     </div>
+                    <p className="font-semibold text-foreground">{record.claims.length > 0 ? record.claims.join(' · ') : 'Document Claim'}</p>
+                    <p className="text-[0.68rem] text-muted-foreground">
+                      {new Date(record.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </p>
                   </div>
                 ))}
               </div>

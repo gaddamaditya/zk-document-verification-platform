@@ -205,28 +205,28 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <Lock className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">PRIVATE</h3>
-            <p className="text-xs leading-6 text-muted-foreground">Your original document stays on your device.</p>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary shrink-0" />
+              PRIVATE
+            </h3>
+            <p className="text-xs leading-5 text-muted-foreground">Your original document stays on your device.</p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <Filter className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">SELECTIVE</h3>
-            <p className="text-xs leading-6 text-muted-foreground">Choose exactly what you want to prove.</p>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary shrink-0" />
+              SELECTIVE
+            </h3>
+            <p className="text-xs leading-5 text-muted-foreground">Choose exactly what you want to prove.</p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center space-y-3 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <FileCheck className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">VERIFIABLE</h3>
-            <p className="text-xs leading-6 text-muted-foreground">Anyone with the proof can verify it.</p>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-primary shrink-0" />
+              VERIFIABLE
+            </h3>
+            <p className="text-xs leading-5 text-muted-foreground">Anyone with the proof can verify it.</p>
           </div>
         </div>
       </section>
@@ -240,7 +240,7 @@ export default function Home() {
 
         {/* Desktop Horizontal Line Timeline */}
         <div className="hidden md:block relative max-w-4xl mx-auto">
-          <div className="absolute top-6 left-[12%] right-[12%] h-px bg-border z-0" />
+          <div className="absolute top-5 left-[12%] right-[12%] h-px bg-border z-0" />
           <div className="grid grid-cols-4 gap-6 relative z-10">
             {[
               { step: '01', title: 'Upload document', desc: 'Select your Aadhaar, PAN, or marksheet locally.' },
@@ -248,8 +248,8 @@ export default function Home() {
               { step: '03', title: 'Generate proof', desc: 'Create a private verification proof.' },
               { step: '04', title: 'Share and verify', desc: 'Share your proof link or QR code for verification.' },
             ].map((item) => (
-              <div key={item.step} className="flex flex-col items-center text-center space-y-2.5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-700 dark:text-teal-300 text-sm shadow-xs">
+              <div key={item.step} className="flex flex-col items-center text-center space-y-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card font-bold text-foreground text-xs shadow-xs">
                   {item.step}
                 </div>
                 <h4 className="text-sm font-bold text-foreground pt-1">{item.title}</h4>
@@ -261,7 +261,7 @@ export default function Home() {
 
         {/* Mobile Vertical Timeline */}
         <div className="md:hidden relative max-w-sm mx-auto space-y-6 px-4">
-          <div className="absolute left-8 top-5 bottom-5 w-px bg-border z-0" />
+          <div className="absolute left-7 top-4 bottom-4 w-px bg-border z-0" />
           {[
             { step: '01', title: 'Upload document', desc: 'Select your Aadhaar, PAN, or marksheet locally.' },
             { step: '02', title: 'Choose what to prove', desc: 'Select the specific details to disclose.' },
@@ -269,7 +269,7 @@ export default function Home() {
             { step: '04', title: 'Share and verify', desc: 'Share your proof link or QR code for verification.' },
           ].map((item) => (
             <div key={item.step} className="relative flex items-start gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card font-bold text-teal-700 dark:text-teal-300 text-xs shadow-xs z-10">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-card font-bold text-foreground text-xs shadow-xs z-10">
                 {item.step}
               </div>
               <div className="pt-0.5">
@@ -289,31 +289,31 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <UserCheck className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">Aadhaar Card</h3>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-primary shrink-0" />
+              Aadhaar Card
+            </h3>
             <p className="text-xs leading-5 text-muted-foreground">
               Verify name, date of birth, age eligibility (18+), or gender while keeping your 12-digit Aadhaar number hidden.
             </p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">PAN Card</h3>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+              PAN Card
+            </h3>
             <p className="text-xs leading-5 text-muted-foreground">
               Confirm identity and name matching for financial or official checks without exposing full PAN details.
             </p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 space-y-2.5 shadow-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-teal-700 dark:text-teal-300">
-              <FileCheck className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">Academic Marksheet</h3>
+          <div className="rounded-lg border border-border bg-card p-5 space-y-2 shadow-xs">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-primary shrink-0" />
+              Academic Marksheet
+            </h3>
             <p className="text-xs leading-5 text-muted-foreground">
               Prove degree qualifications, CGPA, graduation year, or result status without sharing your complete transcript file.
             </p>

@@ -83,15 +83,13 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn('rounded-2xl border border-border bg-card p-6 shadow-sm', className)}>
-      <div className="mb-5 flex items-start gap-3 border-b border-border pb-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-foreground">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-        </div>
+    <div className={cn('rounded-xl border border-border bg-card p-6 shadow-xs', className)}>
+      <div className="mb-5 border-b border-border pb-4">
+        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <Icon className="h-5 w-5 text-primary shrink-0" />
+          {title}
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
       {children}
     </div>
@@ -544,48 +542,45 @@ export default function GenerateProof() {
 
         <div
           className={cn(
-            'rounded-2xl border-2 border-dashed bg-muted/30 px-6 py-10 text-center transition-colors',
+            'rounded-lg border border-dashed p-6 text-center transition-colors',
             dragOver
-              ? 'border-teal-500 bg-teal-500/5'
-              : 'border-border hover:border-teal-500/50 hover:bg-muted/50',
+              ? 'border-primary bg-primary/5'
+              : 'border-border hover:border-primary/50 bg-card',
           )}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-teal-700 dark:text-teal-300 shadow-xs">
-            <Upload className="h-5 w-5" />
-          </div>
-          <h4 className="text-base font-bold text-foreground">Upload your document</h4>
-          <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
-            Supports PDF, PNG, and JPEG files up to 10 MB.
+          <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+          <h4 className="text-sm font-bold text-foreground">Upload document</h4>
+          <p className="mt-1 text-xs text-muted-foreground">
+            PDF, PNG or JPEG up to 10 MB
           </p>
 
-          {selectedFile && (
-            <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-xs text-teal-700 dark:text-teal-300 font-medium">
-              <FileUp className="h-3.5 w-3.5" />
+          {selectedFile ? (
+            <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-medium">
+              <Check className="h-3.5 w-3.5 text-emerald-500" />
               <span className="max-w-[200px] truncate">{selectedFile.name}</span>
-              <span className="text-muted-foreground">({formatBytes(selectedFile.size)})</span>
-              <button type="button" onClick={clearFile} className="ml-1 rounded-full p-0.5 hover:bg-muted">
+              <span className="text-muted-foreground">· {formatBytes(selectedFile.size)}</span>
+              <button type="button" onClick={clearFile} className="ml-1 text-muted-foreground hover:text-foreground">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
-          )}
+          ) : null}
 
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              Choose Document
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="rounded-md">
+              {selectedFile ? 'Change Document' : 'Choose Document'}
             </Button>
             <Button
-              variant="default"
               size="sm"
               disabled={!selectedFile || uploading}
               onClick={uploadFile}
-              className="bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
             >
               {uploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                   Uploading…
                 </>
               ) : (
@@ -961,36 +956,31 @@ export default function GenerateProof() {
                 disabled={!detected}
                 onClick={() => toggleClaim(claim.id, detected)}
                 className={cn(
-                  'flex w-full items-start justify-between rounded-xl border p-4 text-left transition-all',
+                  'flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-all',
                   !detected
                     ? 'border-border bg-muted/20 text-muted-foreground opacity-50 cursor-not-allowed'
                     : selected
-                      ? 'border-teal-500/50 bg-teal-500/10 text-foreground shadow-xs'
-                      : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/50',
+                      ? 'border-primary/50 bg-primary/5 text-foreground'
+                      : 'border-border bg-card text-muted-foreground hover:border-border hover:bg-muted/30',
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border mt-0.5',
-                    !detected
-                      ? 'bg-muted text-muted-foreground'
-                      : selected
-                        ? 'bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30'
-                        : 'bg-muted/50 text-muted-foreground'
-                  )}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className={cn('text-sm font-semibold', selected ? 'text-foreground font-bold' : 'text-foreground')}>{claim.label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
-                    {!detected && (
-                      <p className="text-[0.7rem] font-medium text-amber-600 dark:text-amber-400 mt-1">
-                        Not detected in this document
-                      </p>
-                    )}
-                  </div>
+                <div className={cn(
+                  'flex h-4 w-4 shrink-0 items-center justify-center rounded border mt-0.5 transition-colors',
+                  selected
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-muted-foreground/40 bg-background'
+                )}>
+                  {selected && <Check className="h-3 w-3 stroke-[3]" />}
                 </div>
-                {selected && <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5 ml-2" />}
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">{claim.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{claim.description}</p>
+                  {!detected && (
+                    <p className="text-[0.7rem] font-medium text-amber-600 dark:text-amber-400 mt-1">
+                      Not detected in this document
+                    </p>
+                  )}
+                </div>
               </button>
             );
           })}
@@ -1010,24 +1000,21 @@ export default function GenerateProof() {
       <Panel
         title="Generate Proof"
         description="Compute a zero-knowledge proof for your selected claims."
-        icon={Zap}
+        icon={ShieldCheck}
       >
         <div>
           <Button
             disabled={!documentUploaded || !hasSelectedClaims || generating}
             onClick={generateProof}
-            className="w-full justify-center sm:w-auto bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600"
+            className="w-full justify-center sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 rounded-md"
           >
             {generating ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 Generating Proof…
               </>
             ) : (
-              <>
-                <Zap className="h-4 w-4" />
-                Generate Proof
-              </>
+              'Generate Proof'
             )}
           </Button>
         </div>
