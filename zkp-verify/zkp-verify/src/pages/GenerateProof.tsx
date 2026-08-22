@@ -209,7 +209,25 @@ export default function GenerateProof() {
   const credentialInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelected = (file: File) => {
-    // Revoke previous preview URL to prevent memory leaks
+    console.log('[UPLOAD] selected file:', file?.name);
+    console.log('[UPLOAD] type:', file?.type);
+    console.log('[UPLOAD] size:', file?.size);
+
+    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+    const validExts = ['.pdf', '.png', '.jpg', '.jpeg'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const isValidType = validTypes.includes(file.type) || validExts.includes(ext);
+
+    if (!isValidType) {
+      setUploadError('Invalid file type. Please upload a PDF, PNG, or JPEG document.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File size exceeds 10 MB limit. Please select a smaller file.');
+      return;
+    }
+
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
@@ -218,6 +236,7 @@ export default function GenerateProof() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[UPLOAD] input change fired');
     const file = e.target.files?.[0];
     if (file) handleFileSelected(file);
   };
@@ -521,21 +540,21 @@ export default function GenerateProof() {
         icon={FileUp}
       >
         <input
+          id="document-upload"
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.png,.jpg,.jpeg"
-          className="hidden"
+          accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+          className="sr-only"
           onChange={handleInputChange}
         />
 
         <div
           className={cn(
-            'rounded-lg border border-dashed p-6 text-center transition-colors cursor-pointer select-none',
+            'rounded-lg border border-dashed p-6 text-center transition-colors select-none',
             dragOver
               ? 'border-primary bg-primary/5'
               : 'border-border hover:border-primary/50 bg-card',
           )}
-          onClick={() => fileInputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
@@ -547,16 +566,13 @@ export default function GenerateProof() {
           </p>
 
           {selectedFile ? (
-            <div
-              className="mt-4 inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-medium"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-foreground font-medium">
               <Check className="h-3.5 w-3.5 text-emerald-500" />
               <span className="max-w-[200px] truncate">{selectedFile.name}</span>
               <span className="text-muted-foreground">· {formatBytes(selectedFile.size)}</span>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); clearFile(); }}
+                onClick={clearFile}
                 className="ml-1 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
@@ -565,20 +581,17 @@ export default function GenerateProof() {
           ) : null}
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-              className="rounded-md"
+            <label
+              htmlFor="document-upload"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             >
               {selectedFile ? 'Change Document' : 'Choose Document'}
-            </Button>
+            </label>
             <Button
               type="button"
               size="sm"
               disabled={!selectedFile || uploading}
-              onClick={(e) => { e.stopPropagation(); uploadFile(); }}
+              onClick={uploadFile}
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
             >
               {uploading ? (
