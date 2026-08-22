@@ -492,40 +492,52 @@ export default function GenerateProof() {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Header & Subtitle */}
-      <section className="max-w-4xl space-y-2">
+      {/* Hero */}
+      <section className="max-w-4xl">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300"
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Prover Workflow
+        </motion.div>
+
         <motion.h1
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl"
+          transition={{ delay: 0.05 }}
+          className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
         >
-          Generate Proof
+          Prove a Claim
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="text-sm leading-6 text-muted-foreground max-w-2xl"
+          transition={{ delay: 0.1 }}
+          className="mt-2 text-base leading-7 text-muted-foreground"
         >
-          Choose the information you want to prove without sharing the full document.
+          Generate a privacy-preserving zero-knowledge proof from your document without revealing sensitive information.
         </motion.p>
       </section>
 
-      {/* Workflow Progress Indicator */}
+      {/* Progress steps */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:p-5 shadow-xs"
+        transition={{ delay: 0.15 }}
+        className="flex flex-wrap items-center gap-4 sm:gap-6 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs"
       >
-        <StepIndicator step={1} label="01 Document" active={currentStep === 1} completed={documentUploaded} />
+        <StepIndicator step={1} label="Upload" active={currentStep === 1} completed={documentUploaded} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={2} label="02 Claims" active={currentStep === 2 || currentStep === 3} completed={ocrReady && hasSelectedClaims} />
+        <StepIndicator step={2} label="OCR Results" active={currentStep === 2} completed={ocrReady} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={3} label="03 Generate" active={currentStep === 4} completed={proofGenerated} />
+        <StepIndicator step={3} label="Select Claims" active={currentStep === 3} completed={ocrReady && hasSelectedClaims} />
         <div className="hidden h-px w-6 bg-border sm:block" />
-        <StepIndicator step={4} label="04 Download" active={currentStep === 5} completed={false} />
+        <StepIndicator step={4} label="Generate" active={currentStep === 4} completed={proofGenerated} />
+        <div className="hidden h-px w-6 bg-border sm:block" />
+        <StepIndicator step={5} label="Download / Share" active={currentStep === 5} completed={false} />
       </motion.div>
 
       {/* ── Step 1: Upload Document ─────────────────────────────── */}
@@ -691,12 +703,12 @@ export default function GenerateProof() {
         >
           <Panel
             title="Document Authenticity"
-            description="Verify document integrity and digital signatures."
+            description="Verify the integrity and authenticity of the uploaded document using its digital signature."
             icon={ShieldCheck}
           >
             <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-3.5 text-xs text-muted-foreground leading-6 mb-4">
               <ShieldCheck className="mb-0.5 mr-1.5 inline-block h-3.5 w-3.5 text-teal-500" />
-              Upload the credential file to check that the file has not changed since issuance.
+              Upload the digitally signed credential associated with this document to verify its integrity and issuer signature.
             </div>
 
             <input
@@ -929,8 +941,8 @@ export default function GenerateProof() {
 
       {/* ── Step 3: Select Claims ───────────────────────────────── */}
       <Panel
-        title="What would you like to verify?"
-        description="Select the specific information you want to confirm without exposing the rest of your document."
+        title="Claims available for this document"
+        description="Select any combination of attributes to generate a unified zero-knowledge proof."
         icon={ShieldCheck}
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
@@ -1065,7 +1077,7 @@ export default function GenerateProof() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-base font-bold text-emerald-800 dark:text-emerald-200">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                Proof ready
+                Proof Generated Successfully
               </div>
               {generateResult.proofId && (
                 <span className="rounded-md border border-emerald-500/30 bg-white/60 dark:bg-slate-900/60 px-2.5 py-1 text-xs font-mono font-bold text-emerald-800 dark:text-emerald-200">
@@ -1074,8 +1086,8 @@ export default function GenerateProof() {
               )}
             </div>
 
-            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
-              Share the proof, not the document. Your selected details are verified while your raw document stays private.
+            <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
+              Your claims have been converted into a zero-knowledge proof without revealing your original document.
             </p>
 
             <div className="mt-4 border-t border-emerald-500/20 pt-3">
