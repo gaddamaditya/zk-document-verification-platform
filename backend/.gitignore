@@ -1,0 +1,10 @@
+node_modules/
+uploads/
+temp-verification/
+eng.traineddata
+test-e2e.js
+issuer/keys/
+issuer/test-artifacts/
+*.pem
+*.credential.json
+**/proof-store/*

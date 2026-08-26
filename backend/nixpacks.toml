@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["tesseract"]
+
+[phases.install]
+cmds = [
+  "npm install",
+  "cd zk-document-verification && npm install"
+]
